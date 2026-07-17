@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pl">
 <head>
@@ -335,12 +336,12 @@
     <section id="tab-search" class="active">
       <div class="searchbar">🔍 &nbsp;Szukaj: góry, rower, kajaki…</div>
       <div class="filters">
-        <div class="chip on">Wszystko</div>
-        <div class="chip">🏔️ Góry</div>
-        <div class="chip">🚴 Rower</div>
-        <div class="chip">🚤 Woda</div>
-        <div class="chip">☕ Kawa</div>
-        <div class="chip">🏍️ Motocykl</div>
+        <div class="chip on" onclick="setFilter('all', this)">Wszystko</div>
+        <div class="chip" onclick="setFilter('🏔️', this)">🏔️ Góry</div>
+        <div class="chip" onclick="setFilter('🚴', this)">🚴 Rower</div>
+        <div class="chip" onclick="setFilter('🚤', this)">🚤 Woda</div>
+        <div class="chip" onclick="setFilter('☕', this)">☕ Kawa</div>
+        <div class="chip" onclick="setFilter('🏍️', this)">🏍️ Motocykl</div>
       </div>
       <div class="section-label">Blisko Ciebie · najbliższe terminy</div>
       <div id="feed"></div>
@@ -393,8 +394,7 @@
         <div class="stat"><b>2</b><span>aktywne oferty</span></div>
       </div>
       <div class="section-label">Twoje propozycje</div>
-      <div class="list-item">🏔️ Mała Czantoria, 11.07 <span style="color:var(--amber-dark); font-weight:700;">aktywna</span></div>
-      <div class="list-item">☕ Kawa w Ustroniu, 15.07 <span style="color:var(--ink-soft); font-weight:700;">zakończona</span></div>
+      <div id="my-offers"></div>
       <div class="section-label" style="margin-top:22px;">Ustawienia prywatności</div>
       <div class="list-item">Numer telefonu <span style="color:var(--forest-dark); font-weight:700;">ukryty</span></div>
       <div class="list-item">Widoczność profilu <span style="color:var(--forest-dark); font-weight:700;">tylko po zgodzie</span></div>
@@ -432,7 +432,7 @@ let offers = [
     loc:"Start: parking Ustroń Polana", tags:["Góry","Umiarkowana trasa","Ok. 2h"],
     host:"Tadeusz", age:60, need:"Szuka 1–2 osób, płeć dowolna",
     desc:"Wieczorny spacer na Małą Czantorię — spokojne tempo, ładne widoki o zachodzie słońca. Zbiórka na parkingu, powrót tą samą trasą.",
-    phone:"600 123 456"
+    phone:"600 123 456", mine:true
   },
   {
     icon:"🚤", title:"Pływanie łódką po zalewie", when:"Sob. 18.07 · 10:00",
@@ -457,22 +457,33 @@ let offers = [
   }
 ];
 
+let currentFilter = 'all';
+
 function showTab(id, btn){
   document.querySelectorAll('section').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
+  if(id === 'tab-profile') renderProfile();
 }
 
 function initials(name){ return name.trim().charAt(0).toUpperCase(); }
 
+function setFilter(icon, el){
+  currentFilter = icon;
+  document.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));
+  el.classList.add('on');
+  renderFeed();
+}
+
 function renderFeed(){
   const feed = document.getElementById('feed');
-  if(offers.length===0){
-    feed.innerHTML = `<div class="empty"><div class="big">Brak propozycji w pobliżu</div>Bądź pierwszą osobą — dodaj swoją!</div>`;
+  const visible = currentFilter === 'all' ? offers : offers.filter(o => o.icon === currentFilter);
+  if(visible.length===0){
+    feed.innerHTML = `<div class="empty"><div class="big">Brak propozycji w tej kategorii</div>Spróbuj innego filtra albo dodaj swoją ofertę!</div>`;
     return;
   }
-  feed.innerHTML = offers.map((o,i)=>`
+  feed.innerHTML = visible.map((o)=>{ const i = offers.indexOf(o); return `
     <div class="card" onclick="openDetail(${i})">
       <div class="card-top">
         <div style="display:flex; gap:12px;">
@@ -490,7 +501,32 @@ function renderFeed(){
         ${o.host}, ${o.age} lat &nbsp;·&nbsp; ${o.when.split('·')[0].trim()}
       </div>
     </div>
-  `).join('');
+  `; }).join('');
+}
+
+function renderProfile(){
+  const container = document.getElementById('my-offers');
+  const mine = offers.filter(o => o.mine);
+  if(mine.length === 0){
+    container.innerHTML = `<div class="list-item" style="color:var(--ink-soft);">Nie masz jeszcze żadnych propozycji.</div>`;
+    return;
+  }
+  container.innerHTML = mine.map((o)=>{ const i = offers.indexOf(o); return `
+    <div class="list-item">
+      <span>${o.icon} ${o.title}, ${o.when.split('·')[0].trim()}</span>
+      <span>
+        <span style="color:var(--amber-dark); font-weight:700; margin-right:10px;">aktywna</span>
+        <button onclick="deleteOffer(${i})" style="background:none; border:none; color:var(--forest-dark); font-weight:700; cursor:pointer; font-size:13px;">Usuń</button>
+      </span>
+    </div>
+  `; }).join('');
+}
+
+function deleteOffer(i){
+  if(!confirm('Na pewno chcesz usunąć tę propozycję? Uczestnicy nie zostaną automatycznie powiadomieni.')) return;
+  offers.splice(i, 1);
+  renderFeed();
+  renderProfile();
 }
 
 function openDetail(i){
@@ -558,9 +594,10 @@ function addOffer(){
     host: name, age: age,
     need: need || "Szuka towarzystwa",
     desc: desc || "Brak dodatkowego opisu.",
-    phone: "6•• ••• •••"
+    phone: "6•• ••• •••", mine: true
   });
   renderFeed();
+  renderProfile();
   showTab('tab-search', document.querySelector('nav button[data-tab="tab-search"]'));
   ['f-title','f-loc','f-need','f-desc','f-name','f-age'].forEach(id=>document.getElementById(id).value='');
 }
