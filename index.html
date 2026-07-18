@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pl">
 <head>
@@ -360,11 +361,11 @@
       <div class="searchbar">🔍 &nbsp;Szukaj: góry, rower, kajaki…</div>
       <div class="filters">
         <div class="chip on" onclick="setFilter('all', this)">Wszystko</div>
-        <div class="chip" onclick="setFilter('🏔️', this)">🏔️ Góry</div>
-        <div class="chip" onclick="setFilter('🚴', this)">🚴 Rower</div>
-        <div class="chip" onclick="setFilter('🚤', this)">🚤 Woda</div>
-        <div class="chip" onclick="setFilter('☕', this)">☕ Kawa</div>
-        <div class="chip" onclick="setFilter('🏍️', this)">🏍️ Motocykl</div>
+        <div class="chip" onclick="setFilter('gory', this)">🏔️ Góry</div>
+        <div class="chip" onclick="setFilter('rower', this)">🚴 Rower</div>
+        <div class="chip" onclick="setFilter('woda', this)">🚤 Woda</div>
+        <div class="chip" onclick="setFilter('kawa', this)">☕ Kawa</div>
+        <div class="chip" onclick="setFilter('motocykl', this)">🏍️ Motocykl</div>
       </div>
       <div class="section-label">Blisko Ciebie · najbliższe terminy</div>
       <div id="feed"></div>
@@ -460,8 +461,8 @@
 // ============================================================
 // KONFIGURACJA SUPABASE — wklej tu swoje dane z Supabase → Settings → API
 // ============================================================
-const SUPABASE_URL = "https://jfbydwcwxiqhmqpkotld.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpmYnlkd2N3eGlxaG1xcGtvdGxkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQyOTYzNzMsImV4cCI6MjA5OTg3MjM3M30.r37mkZltQVCWqn7BsFF1KrbNSa6P8Lkp0vUNyHds9Tc";
+const SUPABASE_URL = "TU_WKLEJ_SWOJ_PROJECT_URL";
+const SUPABASE_ANON_KEY = "TU_WKLEJ_SWOJ_ANON_PUBLIC_KEY";
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const ICONS = { gory:"🏔️", rower:"🚴", motocykl:"🏍️", woda:"🚤", kawa:"☕", basen:"🏊", zakupy:"🛍️", wyjazd:"🚗" };
