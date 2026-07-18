@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pl">
 <head>
@@ -23,6 +22,7 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root{
     --paper:#EFF2EA;
@@ -321,7 +321,30 @@
 <body>
 
 <div class="phone">
-  <header>
+  <div id="auth-screen" style="position:absolute; inset:0; background:var(--paper); z-index:50; padding:36px 20px 20px; overflow-y:auto;">
+    <div style="text-align:center; margin-bottom:26px;">
+      <div style="font-family:'Fraunces',serif; font-size:26px; font-weight:600; color:var(--forest-dark);">Wspólnie<span style="color:var(--amber);">Go</span></div>
+      <div style="font-size:13px; color:var(--ink-soft); margin-top:6px;">Zaloguj się albo załóż konto</div>
+    </div>
+    <label>E-mail</label>
+    <input id="auth-email" type="email" placeholder="ty@przyklad.pl">
+    <label>Hasło</label>
+    <input id="auth-password" type="password" placeholder="min. 6 znaków">
+    <div id="auth-register-fields">
+      <label>Twoje imię</label>
+      <input id="auth-name" type="text" placeholder="np. Tadeusz">
+      <div class="row2">
+        <div><label>Wiek</label><input id="auth-age" type="number" placeholder="60"></div>
+        <div><label>Telefon</label><input id="auth-phone" type="tel" placeholder="600 123 456"></div>
+      </div>
+      <div class="form-note">🔒 Numer telefonu nigdy nie jest publiczny — pokażemy go dopiero po wzajemnej akceptacji zgłoszenia.</div>
+    </div>
+    <button class="btn btn-primary" id="auth-submit-btn" onclick="handleSignUp()">Załóż konto</button>
+    <button class="btn btn-secondary" id="auth-toggle-btn" onclick="toggleAuthMode()">Mam już konto — zaloguj się</button>
+    <div id="auth-error" style="color:var(--amber-dark); font-size:13px; margin-top:12px; text-align:center;"></div>
+  </div>
+
+  <header class="app-ui" style="display:none;">
     <svg class="topo" viewBox="0 0 400 150" preserveAspectRatio="none">
       <path d="M0,90 C60,60 100,110 160,80 C220,50 260,100 320,70 C360,50 380,65 400,55" stroke="white" stroke-width="2" fill="none"/>
       <path d="M0,110 C60,85 100,130 160,105 C220,80 260,120 320,95 C360,80 380,90 400,82" stroke="white" stroke-width="2" fill="none"/>
@@ -331,7 +354,7 @@
     <div class="tagline">Znajdź kogoś na wyjście, wyjazd albo aktywność</div>
   </header>
 
-  <main>
+  <main class="app-ui" style="display:none;">
     <!-- SZUKAJ -->
     <section id="tab-search" class="active">
       <div class="searchbar">🔍 &nbsp;Szukaj: góry, rower, kajaki…</div>
@@ -352,14 +375,14 @@
       <div class="section-label">Nowa propozycja</div>
       <label>Rodzaj aktywności</label>
       <select id="f-type">
-        <option>🏔️ Spacer / szlak górski</option>
-        <option>🚴 Wycieczka rowerowa</option>
-        <option>🏍️ Wycieczka motocyklowa</option>
-        <option>🚤 Pływanie łódką / kajakiem</option>
-        <option>☕ Kawa / spotkanie</option>
-        <option>🏊 Basen</option>
-        <option>🛍️ Wspólne zakupy</option>
-        <option>🚗 Wspólny wyjazd (dłuższa trasa)</option>
+        <option value="gory">🏔️ Spacer / szlak górski</option>
+        <option value="rower">🚴 Wycieczka rowerowa</option>
+        <option value="motocykl">🏍️ Wycieczka motocyklowa</option>
+        <option value="woda">🚤 Pływanie łódką / kajakiem</option>
+        <option value="kawa">☕ Kawa / spotkanie</option>
+        <option value="basen">🏊 Basen</option>
+        <option value="zakupy">🛍️ Wspólne zakupy</option>
+        <option value="wyjazd">🚗 Wspólny wyjazd (dłuższa trasa)</option>
       </select>
       <label>Krótki tytuł</label>
       <input id="f-title" type="text" placeholder="np. Spacer na Małą Czantorię">
@@ -373,10 +396,6 @@
       <input id="f-need" type="text" placeholder="np. 2 osoby, dowolna płeć">
       <label>Opis (opcjonalnie)</label>
       <textarea id="f-desc" placeholder="Kilka słów o planie, tempie, wymaganiach…"></textarea>
-      <div class="row2">
-        <div><label>Twoje imię</label><input id="f-name" type="text" placeholder="np. Tadeusz"></div>
-        <div><label>Wiek</label><input id="f-age" type="number" placeholder="60"></div>
-      </div>
       <div class="form-note">🔒 Twój numer telefonu nie jest widoczny publicznie. Pokażemy go dopiero osobie, którą zaakceptujesz.</div>
       <button class="btn btn-primary" onclick="addOffer()">Opublikuj propozycję</button>
     </section>
@@ -384,17 +403,19 @@
     <!-- PROFIL -->
     <section id="tab-profile">
       <div class="profile-head">
-        <div class="profile-avatar">T</div>
-        <div class="profile-name">Tadeusz, 60 lat</div>
-        <div class="profile-sub">Ustroń · dołączył w 2026</div>
-      </div>
-      <div class="stat-row">
-        <div class="stat"><b>4</b><span>wspólne wyjścia</span></div>
-        <div class="stat"><b>4.9</b><span>ocena</span></div>
-        <div class="stat"><b>2</b><span>aktywne oferty</span></div>
+        <div class="profile-avatar" id="profile-avatar">?</div>
+        <div class="profile-name" id="profile-name">—</div>
+        <div class="profile-sub" id="profile-sub">WspólnieGo</div>
       </div>
       <div class="section-label">Twoje propozycje</div>
       <div id="my-offers"></div>
+
+      <div class="section-label" style="margin-top:22px;">Otrzymane zgłoszenia</div>
+      <div id="received-requests"></div>
+
+      <div class="section-label" style="margin-top:22px;">Twoje zgłoszenia do innych</div>
+      <div id="sent-requests"></div>
+
       <div class="section-label" style="margin-top:22px;">Ustawienia prywatności</div>
       <div class="list-item">Numer telefonu <span style="color:var(--forest-dark); font-weight:700;">ukryty</span></div>
       <div class="list-item">Widoczność profilu <span style="color:var(--forest-dark); font-weight:700;">tylko po zgodzie</span></div>
@@ -406,6 +427,8 @@
           Wpłać tyle, ile uważasz.
         </p>
       </div>
+
+      <button class="btn btn-secondary" style="margin-top:22px;" onclick="handleSignOut()">Wyloguj się</button>
     </section>
   </main>
 
@@ -420,7 +443,7 @@
     <button class="ib-dismiss" onclick="dismissInstallBanner()">✕</button>
   </div>
 
-  <nav>
+  <nav class="app-ui" style="display:none;">
     <button class="active" data-tab="tab-search" onclick="showTab('tab-search',this)">
       <span class="ic">🔍</span>Szukaj
     </button>
@@ -434,38 +457,109 @@
 </div>
 
 <script>
-let offers = [
-  {
-    icon:"🏔️", title:"Spacer szlakiem na Małą Czantorię", when:"Niedz. 11.07 · 18:00",
-    loc:"Start: parking Ustroń Polana", tags:["Góry","Umiarkowana trasa","Ok. 2h"],
-    host:"Tadeusz", age:60, need:"Szuka 1–2 osób, płeć dowolna",
-    desc:"Wieczorny spacer na Małą Czantorię — spokojne tempo, ładne widoki o zachodzie słońca. Zbiórka na parkingu, powrót tą samą trasą.",
-    phone:"600 123 456", mine:true
-  },
-  {
-    icon:"🚤", title:"Pływanie łódką po zalewie", when:"Sob. 18.07 · 10:00",
-    loc:"Przystań, Zalew Goczałkowicki", tags:["Woda","Potrzebny patent","3 os. w załodze"],
-    host:"Ola", age:34, need:"Szuka osoby z patentem żeglarskim + 1 osoby bez",
-    desc:"Mamy łódkę na 3 osoby, brakuje jednej osoby z patentem i jednej bez doświadczenia — chętnie kogoś nauczymy podstaw.",
-    phone:"512 987 321"
-  },
-  {
-    icon:"🚗", title:"Wspólny wyjazd Katowice → Gdańsk", when:"Pt. 24.07 · 6:30",
-    loc:"Start: Katowice, dworzec PKP", tags:["Podróż","Podział kosztów","3 miejsca"],
-    host:"Marek", age:41, need:"Szuka 2–3 osób do wspólnego wyjazdu i podziału kosztów",
-    desc:"Jadę w delegację i wracam w niedzielę — mam wolne miejsca, można się przyłączyć w jedną albo obie strony.",
-    phone:"793 456 210"
-  },
-  {
-    icon:"🚴", title:"Wycieczka rowerowa nad Wisłą", when:"Śr. 21.07 · 17:30",
-    loc:"Start: Bulwary, Kraków", tags:["Rower","Rekreacyjne tempo","2h"],
-    host:"Kasia", age:27, need:"Szuka 1–3 osób, dowolny poziom",
-    desc:"Spokojna trasa wzdłuż Wisły, bez pośpiechu, z przystankiem na lody w połowie.",
-    phone:"661 222 333"
-  }
-];
+// ============================================================
+// KONFIGURACJA SUPABASE — wklej tu swoje dane z Supabase → Settings → API
+// ============================================================
+const SUPABASE_URL = "https://jfbydwcwxiqhmqpkotld.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpmYnlkd2N3eGlxaG1xcGtvdGxkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQyOTYzNzMsImV4cCI6MjA5OTg3MjM3M30.r37mkZltQVCWqn7BsFF1KrbNSa6P8Lkp0vUNyHds9Tc";
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+const ICONS = { gory:"🏔️", rower:"🚴", motocykl:"🏍️", woda:"🚤", kawa:"☕", basen:"🏊", zakupy:"🛍️", wyjazd:"🚗" };
+
+let session = null;
+let myProfile = null;
+let offers = [];
 let currentFilter = 'all';
+let authMode = 'register';
+
+function escapeHtml(str){
+  if(str == null) return '';
+  return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function initials(name){ return (name || '?').trim().charAt(0).toUpperCase(); }
+
+// ---------------- AUTORYZACJA ----------------
+
+function toggleAuthMode(){
+  authMode = authMode === 'register' ? 'login' : 'register';
+  document.getElementById('auth-register-fields').style.display = authMode === 'register' ? 'block' : 'none';
+  const submitBtn = document.getElementById('auth-submit-btn');
+  const toggleBtn = document.getElementById('auth-toggle-btn');
+  if(authMode === 'register'){
+    submitBtn.textContent = 'Załóż konto';
+    submitBtn.onclick = handleSignUp;
+    toggleBtn.textContent = 'Mam już konto — zaloguj się';
+  } else {
+    submitBtn.textContent = 'Zaloguj się';
+    submitBtn.onclick = handleSignIn;
+    toggleBtn.textContent = 'Nie mam konta — zarejestruj się';
+  }
+  document.getElementById('auth-error').textContent = '';
+}
+
+function showAuthError(msg){
+  document.getElementById('auth-error').textContent = msg;
+}
+
+async function handleSignUp(){
+  const email = document.getElementById('auth-email').value.trim();
+  const password = document.getElementById('auth-password').value;
+  const name = document.getElementById('auth-name').value.trim();
+  const age = document.getElementById('auth-age').value.trim();
+  const phone = document.getElementById('auth-phone').value.trim();
+  if(!email || !password || !name || !age || !phone){
+    showAuthError('Uzupełnij wszystkie pola.');
+    return;
+  }
+  const { data, error } = await sb.auth.signUp({ email, password });
+  if(error){ showAuthError('Błąd rejestracji: ' + error.message); return; }
+  if(!data.session){
+    showAuthError('Konto utworzone. Jeśli włączone jest potwierdzanie e-mail, sprawdź skrzynkę, a potem się zaloguj.');
+    return;
+  }
+  const { error: profErr } = await sb.from('profiles').insert({
+    id: data.user.id, display_name: name, age: Number(age)
+  });
+  if(profErr){ showAuthError('Błąd zapisu profilu: ' + profErr.message); return; }
+  const { error: privErr } = await sb.from('profile_private').insert({
+    id: data.user.id, phone_number: phone
+  });
+  if(privErr){ showAuthError('Błąd zapisu numeru telefonu: ' + privErr.message); return; }
+  await initApp();
+}
+
+async function handleSignIn(){
+  const email = document.getElementById('auth-email').value.trim();
+  const password = document.getElementById('auth-password').value;
+  if(!email || !password){ showAuthError('Podaj e-mail i hasło.'); return; }
+  const { error } = await sb.auth.signInWithPassword({ email, password });
+  if(error){ showAuthError('Błąd logowania: ' + error.message); return; }
+  await initApp();
+}
+
+async function handleSignOut(){
+  await sb.auth.signOut();
+  location.reload();
+}
+
+async function initApp(){
+  const { data: { session: s } } = await sb.auth.getSession();
+  session = s;
+  if(!session){
+    document.getElementById('auth-screen').style.display = 'block';
+    document.querySelectorAll('.app-ui').forEach(el => el.style.display = 'none');
+    return;
+  }
+  const { data: prof } = await sb.from('profiles').select('*').eq('id', session.user.id).single();
+  myProfile = prof;
+  document.getElementById('auth-screen').style.display = 'none';
+  document.querySelectorAll('.app-ui').forEach(el => el.style.display = '');
+  document.getElementById('profile-avatar').textContent = initials(myProfile.display_name);
+  document.getElementById('profile-name').textContent = `${myProfile.display_name}, ${myProfile.age} lat`;
+  await loadOffers();
+}
+
+// ---------------- NAWIGACJA ----------------
 
 function showTab(id, btn){
   document.querySelectorAll('section').forEach(s=>s.classList.remove('active'));
@@ -475,98 +569,102 @@ function showTab(id, btn){
   if(id === 'tab-profile') renderProfile();
 }
 
-function initials(name){ return name.trim().charAt(0).toUpperCase(); }
-
-function setFilter(icon, el){
-  currentFilter = icon;
+function setFilter(type, el){
+  currentFilter = type;
   document.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));
   el.classList.add('on');
   renderFeed();
 }
 
+// ---------------- OFERTY ----------------
+
+async function loadOffers(){
+  const { data, error } = await sb
+    .from('offers')
+    .select('*, profiles(display_name, age)')
+    .eq('status', 'active')
+    .order('date_time', { ascending: true });
+  if(error){ console.error(error); return; }
+  offers = data;
+  renderFeed();
+}
+
 function renderFeed(){
   const feed = document.getElementById('feed');
-  const visible = currentFilter === 'all' ? offers : offers.filter(o => o.icon === currentFilter);
-  if(visible.length===0){
+  const visible = currentFilter === 'all' ? offers : offers.filter(o => o.activity_type === currentFilter);
+  if(visible.length === 0){
     feed.innerHTML = `<div class="empty"><div class="big">Brak propozycji w tej kategorii</div>Spróbuj innego filtra albo dodaj swoją ofertę!</div>`;
     return;
   }
-  feed.innerHTML = visible.map((o)=>{ const i = offers.indexOf(o); return `
-    <div class="card" onclick="openDetail(${i})">
+  feed.innerHTML = visible.map((o) => {
+    const icon = ICONS[o.activity_type] || "📌";
+    const dt = new Date(o.date_time);
+    const dateStr = dt.toLocaleDateString('pl-PL', {weekday:'short', day:'2-digit', month:'2-digit'});
+    const timeStr = dt.toLocaleTimeString('pl-PL', {hour:'2-digit', minute:'2-digit'});
+    const hostName = o.profiles ? o.profiles.display_name : 'Użytkownik';
+    const hostAge = o.profiles ? o.profiles.age : '–';
+    return `
+    <div class="card" onclick="openDetail('${o.id}')">
       <div class="card-top">
         <div style="display:flex; gap:12px;">
-          <div class="card-icon">${o.icon}</div>
+          <div class="card-icon">${icon}</div>
           <div>
-            <p class="card-title">${o.title}</p>
-            <div class="card-meta">${o.loc}</div>
+            <p class="card-title">${escapeHtml(o.title)}</p>
+            <div class="card-meta">${escapeHtml(o.location_text || 'Miejsce do ustalenia')}</div>
           </div>
         </div>
-        <div class="card-when">${o.when.split('·')[1]?.trim() || ''}</div>
+        <div class="card-when">${timeStr}</div>
       </div>
-      <div class="card-tags">${o.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+      ${o.participants_note ? `<div class="card-tags"><span class="tag">${escapeHtml(o.participants_note)}</span></div>` : ''}
       <div class="card-host">
-        <div class="avatar">${initials(o.host)}</div>
-        ${o.host}, ${o.age} lat &nbsp;·&nbsp; ${o.when.split('·')[0].trim()}
+        <div class="avatar">${initials(hostName)}</div>
+        ${escapeHtml(hostName)}, ${hostAge} lat &nbsp;·&nbsp; ${dateStr}
       </div>
     </div>
   `; }).join('');
 }
 
-function renderProfile(){
-  const container = document.getElementById('my-offers');
-  const mine = offers.filter(o => o.mine);
-  if(mine.length === 0){
-    container.innerHTML = `<div class="list-item" style="color:var(--ink-soft);">Nie masz jeszcze żadnych propozycji.</div>`;
-    return;
-  }
-  container.innerHTML = mine.map((o)=>{ const i = offers.indexOf(o); return `
-    <div class="list-item">
-      <span>${o.icon} ${o.title}, ${o.when.split('·')[0].trim()}</span>
-      <span>
-        <span style="color:var(--amber-dark); font-weight:700; margin-right:10px;">aktywna</span>
-        <button onclick="deleteOffer(${i})" style="background:none; border:none; color:var(--forest-dark); font-weight:700; cursor:pointer; font-size:13px;">Usuń</button>
-      </span>
-    </div>
-  `; }).join('');
-}
-
-function deleteOffer(i){
-  if(!confirm('Na pewno chcesz usunąć tę propozycję? Uczestnicy nie zostaną automatycznie powiadomieni.')) return;
-  offers.splice(i, 1);
-  renderFeed();
-  renderProfile();
-}
-
-function openDetail(i){
-  const o = offers[i];
+function openDetail(id){
+  const o = offers.find(x => x.id === id);
+  if(!o) return;
+  const icon = ICONS[o.activity_type] || "📌";
+  const dt = new Date(o.date_time);
+  const isMine = o.host_id === session.user.id;
+  const hostName = o.profiles ? o.profiles.display_name : 'Użytkownik';
+  const hostAge = o.profiles ? o.profiles.age : '–';
   const sheet = document.getElementById('sheet');
   sheet.innerHTML = `
     <div class="sheet-handle"></div>
     <div class="close-x" onclick="closeOverlay()">✕</div>
-    <h2>${o.icon} ${o.title}</h2>
-    <div class="info-row">🗓️ <b>${o.when}</b></div>
-    <div class="info-row">📍 <b>${o.loc}</b></div>
-    <div class="info-row">👤 <b>${o.host}, ${o.age} lat</b></div>
-    <div class="info-row">🙋 ${o.need}</div>
-    <div class="card-tags">${o.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>
-    <p class="desc">${o.desc}</p>
+    <h2>${icon} ${escapeHtml(o.title)}</h2>
+    <div class="info-row">🗓️ <b>${dt.toLocaleDateString('pl-PL')} · ${dt.toLocaleTimeString('pl-PL',{hour:'2-digit',minute:'2-digit'})}</b></div>
+    <div class="info-row">📍 <b>${escapeHtml(o.location_text || 'Do ustalenia')}</b></div>
+    <div class="info-row">👤 <b>${escapeHtml(hostName)}, ${hostAge} lat</b></div>
+    ${o.participants_note ? `<div class="info-row">🙋 ${escapeHtml(o.participants_note)}</div>` : ''}
+    <p class="desc">${escapeHtml(o.description || 'Brak dodatkowego opisu.')}</p>
     <div id="contact-area">
-      <button class="btn btn-primary" onclick="requestContact(${i})">Chcę dołączyć</button>
-      <button class="btn btn-secondary" onclick="closeOverlay()">Wróć do listy</button>
+      ${isMine
+        ? `<button class="btn btn-secondary" onclick="closeOverlay()">To Twoja oferta</button>`
+        : `<button class="btn btn-primary" onclick="requestContact('${o.id}')">Chcę dołączyć</button>
+           <button class="btn btn-secondary" onclick="closeOverlay()">Wróć do listy</button>`}
     </div>
   `;
   document.getElementById('overlay').classList.add('show');
 }
 
-function requestContact(i){
-  const o = offers[i];
+async function requestContact(offerId){
   const area = document.getElementById('contact-area');
+  area.innerHTML = `<div class="reveal-box">Wysyłanie zgłoszenia…</div>`;
+  const { error } = await sb.rpc('create_join_request', { p_offer_id: offerId });
+  if(error){
+    area.innerHTML = `<div class="reveal-box">Nie udało się wysłać zgłoszenia: ${escapeHtml(error.message)}</div>
+      <button class="btn btn-secondary" onclick="closeOverlay()" style="margin-top:14px;">Zamknij</button>`;
+    return;
+  }
   area.innerHTML = `
     <div class="reveal-box">
-      Zgłoszenie wysłane do <b>${o.host}</b> ✅<br>
-      Po jego/jej akceptacji zobaczysz numer telefonu tutaj.
-      <div class="phone-num">${o.phone}</div>
-      <div class="reveal-note">Numer pokazujemy dopiero teraz — nigdy publicznie na liście ofert.</div>
+      Zgłoszenie wysłane ✅<br>
+      Host zobaczy je w swoim profilu. Gdy je zaakceptuje, numer telefonu pojawi się w Twoim profilu, w sekcji „Twoje zgłoszenia do innych”.
     </div>
     <button class="btn btn-secondary" onclick="closeOverlay()" style="margin-top:14px;">Zamknij</button>
   `;
@@ -576,41 +674,124 @@ function closeOverlay(){
   document.getElementById('overlay').classList.remove('show');
 }
 
-function addOffer(){
-  const type = document.getElementById('f-type').value;
-  const icon = type.split(' ')[0];
+async function addOffer(){
+  const activityType = document.getElementById('f-type').value;
   const title = document.getElementById('f-title').value.trim();
   const date = document.getElementById('f-date').value;
   const time = document.getElementById('f-time').value;
   const loc = document.getElementById('f-loc').value.trim();
   const need = document.getElementById('f-need').value.trim();
   const desc = document.getElementById('f-desc').value.trim();
-  const name = document.getElementById('f-name').value.trim();
-  const age = document.getElementById('f-age').value.trim();
 
-  if(!title || !name || !age){
-    alert('Uzupełnij przynajmniej tytuł, imię i wiek.');
+  if(!title || !date || !time){
+    alert('Uzupełnij przynajmniej rodzaj aktywności, tytuł, datę i godzinę.');
     return;
   }
-  const dateFmt = date ? new Date(date).toLocaleDateString('pl-PL',{weekday:'short', day:'2-digit', month:'2-digit'}) : 'Termin do ustalenia';
-  offers.unshift({
-    icon: icon || "📌",
+  const dateTimeIso = new Date(`${date}T${time}`).toISOString();
+
+  const { error } = await sb.from('offers').insert({
+    host_id: session.user.id,
+    activity_type: activityType,
     title: title,
-    when: `${dateFmt} · ${time || '—'}`,
-    loc: loc || "Miejsce do ustalenia",
-    tags: [type.replace(icon,'').trim()],
-    host: name, age: age,
-    need: need || "Szuka towarzystwa",
-    desc: desc || "Brak dodatkowego opisu.",
-    phone: "6•• ••• •••", mine: true
+    location_text: loc || null,
+    date_time: dateTimeIso,
+    participants_note: need || null,
+    description: desc || null
   });
-  renderFeed();
-  renderProfile();
+  if(error){ alert('Nie udało się dodać oferty: ' + error.message); return; }
+
+  ['f-title','f-loc','f-need','f-desc','f-date','f-time'].forEach(id=>document.getElementById(id).value='');
+  await loadOffers();
   showTab('tab-search', document.querySelector('nav button[data-tab="tab-search"]'));
-  ['f-title','f-loc','f-need','f-desc','f-name','f-age'].forEach(id=>document.getElementById(id).value='');
 }
 
-renderFeed();
+async function deleteOffer(id){
+  if(!confirm('Na pewno chcesz usunąć tę propozycję? Uczestnicy nie zostaną automatycznie powiadomieni.')) return;
+  const { error } = await sb.from('offers').delete().eq('id', id);
+  if(error){ alert('Nie udało się usunąć: ' + error.message); return; }
+  await loadOffers();
+  renderProfile();
+}
+
+// ---------------- PROFIL: własne oferty + zgłoszenia ----------------
+
+async function renderProfile(){
+  const mineContainer = document.getElementById('my-offers');
+  const mine = offers.filter(o => o.host_id === session.user.id);
+  mineContainer.innerHTML = mine.length === 0
+    ? `<div class="list-item" style="color:var(--ink-soft);">Nie masz jeszcze żadnych propozycji.</div>`
+    : mine.map(o => `
+      <div class="list-item">
+        <span>${ICONS[o.activity_type] || "📌"} ${escapeHtml(o.title)}</span>
+        <span>
+          <span style="color:var(--amber-dark); font-weight:700; margin-right:10px;">aktywna</span>
+          <button onclick="deleteOffer('${o.id}')" style="background:none; border:none; color:var(--forest-dark); font-weight:700; cursor:pointer; font-size:13px;">Usuń</button>
+        </span>
+      </div>
+    `).join('');
+
+  // Zgłoszenia OTRZYMANE (jestem hostem)
+  const { data: received } = await sb
+    .from('join_requests')
+    .select('id, status, offer_id, offers(title), profiles(display_name, age)')
+    .eq('status', 'pending')
+    .in('offer_id', mine.map(o => o.id).length ? mine.map(o => o.id) : ['00000000-0000-0000-0000-000000000000']);
+
+  const receivedContainer = document.getElementById('received-requests');
+  receivedContainer.innerHTML = (!received || received.length === 0)
+    ? `<div class="list-item" style="color:var(--ink-soft);">Brak nowych zgłoszeń.</div>`
+    : received.map(r => `
+      <div class="list-item">
+        <span>${escapeHtml(r.profiles?.display_name || 'Ktoś')}, ${r.profiles?.age || '–'} lat → ${escapeHtml(r.offers?.title || '')}</span>
+        <span>
+          <button onclick="respondToRequest('${r.id}', true)" style="background:none; border:none; color:var(--forest-dark); font-weight:700; cursor:pointer; font-size:13px; margin-right:8px;">Akceptuj</button>
+          <button onclick="respondToRequest('${r.id}', false)" style="background:none; border:none; color:var(--ink-soft); font-weight:700; cursor:pointer; font-size:13px;">Odrzuć</button>
+        </span>
+      </div>
+    `).join('');
+
+  // Zgłoszenia WYSŁANE (jestem uczestnikiem)
+  const { data: sent } = await sb
+    .from('join_requests')
+    .select('id, status, offer_id, offers(title, host_id)')
+    .eq('requester_id', session.user.id);
+
+  const sentContainer = document.getElementById('sent-requests');
+  if(!sent || sent.length === 0){
+    sentContainer.innerHTML = `<div class="list-item" style="color:var(--ink-soft);">Nie wysłałaś/eś jeszcze żadnych zgłoszeń.</div>`;
+  } else {
+    const rows = await Promise.all(sent.map(async (r) => {
+      const statusLabel = { pending:'oczekuje', accepted:'zaakceptowano', declined:'odrzucono', cancelled:'anulowano' }[r.status] || r.status;
+      let phoneHtml = '';
+      if(r.status === 'accepted' && r.offers?.host_id){
+        const { data: priv } = await sb.from('profile_private').select('phone_number').eq('id', r.offers.host_id).single();
+        if(priv) phoneHtml = `<div style="font-family:'JetBrains Mono',monospace; font-weight:700; color:var(--forest-dark); margin-top:4px;">${escapeHtml(priv.phone_number)}</div>`;
+      }
+      return `
+        <div class="list-item" style="flex-direction:column; align-items:flex-start;">
+          <div style="display:flex; justify-content:space-between; width:100%;">
+            <span>${escapeHtml(r.offers?.title || '')}</span>
+            <span style="color:var(--ink-soft); font-weight:700;">${statusLabel}</span>
+          </div>
+          ${phoneHtml}
+        </div>
+      `;
+    }));
+    sentContainer.innerHTML = rows.join('');
+  }
+}
+
+async function respondToRequest(requestId, accept){
+  const fn = accept ? 'accept_join_request' : 'decline_join_request';
+  const { error } = await sb.rpc(fn, { request_id: requestId });
+  if(error){ alert('Błąd: ' + error.message); return; }
+  await renderProfile();
+}
+
+// ---------------- START ----------------
+
+document.addEventListener('DOMContentLoaded', initApp);
+
 
 // ---- PWA: rejestracja Service Workera ----
 if ('serviceWorker' in navigator) {
