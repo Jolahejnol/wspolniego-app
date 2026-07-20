@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pl">
 <head>
@@ -73,6 +72,10 @@
     padding:22px 20px 30px;
     overflow:hidden;
   }
+  header .top-row{
+    position:relative; z-index:1;
+    display:flex; justify-content:space-between; align-items:flex-start;
+  }
   header .brand{
     font-family:'Fraunces',serif;
     font-size:26px;
@@ -89,6 +92,15 @@
     margin-top:4px;
     font-weight:500;
   }
+  .lang-toggle{
+    display:flex; background:rgba(255,255,255,0.15); border-radius:999px; padding:3px;
+    flex:0 0 auto; margin-top:2px; position:relative; z-index:1;
+  }
+  .lang-toggle button{
+    border:none; background:transparent; color:#D9E4DA; font-size:11.5px; font-weight:700;
+    font-family:'JetBrains Mono',monospace; padding:5px 10px; border-radius:999px; cursor:pointer;
+  }
+  .lang-toggle button.on{background:var(--amber); color:#2A1D06;}
   main{
     flex:1;
     overflow-y:auto;
@@ -102,14 +114,19 @@
     background:var(--card);
     border:1px solid var(--line);
     border-radius:14px;
-    padding:12px 14px;
+    padding:10px 14px;
     font-size:15px;
-    color:var(--ink-soft);
+    color:var(--ink);
     margin-bottom:16px;
     display:flex;
     align-items:center;
     gap:8px;
   }
+  .searchbar input{
+    border:none; outline:none; flex:1; font-size:15px; font-family:'Inter',sans-serif;
+    background:transparent; color:var(--ink); padding:2px 0;
+  }
+  .searchbar input::placeholder{color:var(--ink-soft);}
   .filters{
     display:flex; gap:8px; overflow-x:auto; margin-bottom:18px; padding-bottom:4px;
   }
@@ -227,6 +244,14 @@
   .btn-primary{background:var(--amber); color:#2A1D06;}
   .btn-primary:active{background:var(--amber-dark);}
   .btn-secondary{background:transparent; color:var(--forest-dark); border:1.5px solid var(--forest-dark);}
+  .btn-call{background:var(--forest); color:#fff; text-decoration:none; display:block; text-align:center;}
+  .btn-call:active{background:var(--forest-dark);}
+  .btn-danger{background:none; border:none; color:#B3261E; font-weight:700; cursor:pointer; font-size:13px;}
+  .participant-row{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:10px 0; border-bottom:1px dashed var(--line); font-size:14px;
+  }
+  .participant-row:last-child{border-bottom:none;}
 
   .reveal-box{
     margin-top:14px; background:#EAF1EA; border-radius:14px; padding:16px; text-align:center;
@@ -271,6 +296,12 @@
     background:var(--card); border:1px solid var(--line); border-radius:14px;
     padding:13px 15px; margin-bottom:10px; font-size:14px; display:flex; justify-content:space-between; align-items:center;
   }
+
+  .support-line{
+    background:#F4EFE1; border-radius:12px; padding:12px 14px; margin:12px 0;
+  }
+  .support-line .lbl{font-size:11.5px; color:var(--amber-dark); font-weight:700; text-transform:uppercase; letter-spacing:0.04em;}
+  .support-line .val{font-family:'JetBrains Mono',monospace; font-size:16px; font-weight:700; color:var(--ink); margin-top:3px;}
 
   .empty{
     text-align:center; padding:50px 20px; color:var(--ink-soft);
@@ -351,54 +382,67 @@
       <path d="M0,110 C60,85 100,130 160,105 C220,80 260,120 320,95 C360,80 380,90 400,82" stroke="white" stroke-width="2" fill="none"/>
       <path d="M0,130 C60,110 100,145 160,125 C220,105 260,140 320,118 C360,105 380,112 400,108" stroke="white" stroke-width="2" fill="none"/>
     </svg>
-    <div class="brand">Wspólnie<span>Go</span></div>
-    <div class="tagline">Znajdź kogoś na wyjście, wyjazd albo aktywność</div>
+    <div class="top-row">
+      <div>
+        <div class="brand">Wspólnie<span>Go</span></div>
+        <div class="tagline" data-i18n="tagline">Znajdź kogoś na wyjście, wyjazd albo aktywność</div>
+      </div>
+      <div class="lang-toggle">
+        <button id="lang-pl" onclick="setLang('pl')">PL</button>
+        <button id="lang-en" onclick="setLang('en')">EN</button>
+      </div>
+    </div>
   </header>
 
   <main class="app-ui" style="display:none;">
     <!-- SZUKAJ -->
     <section id="tab-search" class="active">
-      <div class="searchbar">🔍 &nbsp;Szukaj: góry, rower, kajaki…</div>
-      <div class="filters">
-        <div class="chip on" onclick="setFilter('all', this)">Wszystko</div>
-        <div class="chip" onclick="setFilter('gory', this)">🏔️ Góry</div>
-        <div class="chip" onclick="setFilter('rower', this)">🚴 Rower</div>
-        <div class="chip" onclick="setFilter('woda', this)">🚤 Woda</div>
-        <div class="chip" onclick="setFilter('kawa', this)">☕ Kawa</div>
-        <div class="chip" onclick="setFilter('motocykl', this)">🏍️ Motocykl</div>
+      <div class="searchbar">
+        🔍
+        <input id="search-input" type="text" data-i18n-placeholder="searchPlaceholder" placeholder="Szukaj: góry, rower, kajaki, miejscowość…" oninput="renderFeed()">
       </div>
-      <div class="section-label">Blisko Ciebie · najbliższe terminy</div>
+      <div class="filters">
+        <div class="chip on" onclick="setFilter('all', this)" data-i18n="filterAll">Wszystko</div>
+        <div class="chip" onclick="setFilter('gory', this)" data-i18n="filterMountains">🏔️ Góry</div>
+        <div class="chip" onclick="setFilter('rower', this)" data-i18n="filterBike">🚴 Rower</div>
+        <div class="chip" onclick="setFilter('woda', this)" data-i18n="filterWater">🚤 Woda</div>
+        <div class="chip" onclick="setFilter('kawa', this)" data-i18n="filterCoffee">☕ Kawa</div>
+        <div class="chip" onclick="setFilter('motocykl', this)" data-i18n="filterMoto">🏍️ Motocykl</div>
+        <div class="chip" onclick="setFilter('inne', this)" data-i18n="filterOther">📌 Inne</div>
+      </div>
+      <div class="section-label" data-i18n="feedLabel">Blisko Ciebie · najbliższe terminy</div>
       <div id="feed"></div>
     </section>
 
     <!-- DODAJ -->
     <section id="tab-add">
       <div class="section-label">Nowa propozycja</div>
-      <label>Rodzaj aktywności</label>
+      <label data-i18n="labelType">Rodzaj aktywności</label>
       <select id="f-type">
-        <option value="gory">🏔️ Spacer / szlak górski</option>
-        <option value="rower">🚴 Wycieczka rowerowa</option>
-        <option value="motocykl">🏍️ Wycieczka motocyklowa</option>
-        <option value="woda">🚤 Pływanie łódką / kajakiem</option>
-        <option value="kawa">☕ Kawa / spotkanie</option>
-        <option value="basen">🏊 Basen</option>
-        <option value="zakupy">🛍️ Wspólne zakupy</option>
-        <option value="wyjazd">🚗 Wspólny wyjazd (dłuższa trasa)</option>
+        <option value="gory" data-i18n="optMountain">🏔️ Spacer / szlak górski</option>
+        <option value="rower" data-i18n="optBike">🚴 Wycieczka rowerowa</option>
+        <option value="motocykl" data-i18n="optMoto">🏍️ Wycieczka motocyklowa</option>
+        <option value="woda" data-i18n="optBoat">🚤 Pływanie łódką / kajakiem</option>
+        <option value="kawa" data-i18n="optCoffee">☕ Kawa / spotkanie</option>
+        <option value="basen" data-i18n="optPool">🏊 Basen</option>
+        <option value="zakupy" data-i18n="optShopping">🛍️ Wspólne zakupy</option>
+        <option value="wyjazd" data-i18n="optTrip">🚗 Wspólny wyjazd (dłuższa trasa)</option>
+        <option value="inne" data-i18n="optOther">📌 Coś innego</option>
       </select>
-      <label>Krótki tytuł</label>
-      <input id="f-title" type="text" placeholder="np. Spacer na Małą Czantorię">
+      <label data-i18n="labelTitle">Krótki tytuł</label>
+      <input id="f-title" type="text" data-i18n-placeholder="titlePlaceholder" placeholder="np. Spacer na Małą Czantorię">
       <div class="row2">
-        <div><label>Data</label><input id="f-date" type="date"></div>
-        <div><label>Godzina</label><input id="f-time" type="time"></div>
+        <div><label data-i18n="labelDate">Data</label><input id="f-date" type="date"></div>
+        <div><label data-i18n="labelTime">Godzina</label><input id="f-time" type="time"></div>
       </div>
-      <label>Miejsce startu</label>
-      <input id="f-loc" type="text" placeholder="np. Parking pod Czantorią, Ustroń">
-      <label>Ilu osób szukasz i jakich?</label>
-      <input id="f-need" type="text" placeholder="np. 2 osoby, dowolna płeć">
-      <label>Opis (opcjonalnie)</label>
-      <textarea id="f-desc" placeholder="Kilka słów o planie, tempie, wymaganiach…"></textarea>
-      <div class="form-note">🔒 Twój numer telefonu nie jest widoczny publicznie. Pokażemy go dopiero osobie, którą zaakceptujesz.</div>
-      <button class="btn btn-primary" onclick="addOffer()">Opublikuj propozycję</button>
+      <label data-i18n="labelLoc">Miejsce startu</label>
+      <input id="f-loc" type="text" data-i18n-placeholder="locPlaceholder" placeholder="np. Parking pod Czantorią, Ustroń">
+      <label data-i18n="labelNeed">Ilu osób szukasz i jakich?</label>
+      <input id="f-need" type="text" data-i18n-placeholder="needPlaceholder" placeholder="np. 2 osoby, dowolna płeć">
+      <label data-i18n="labelDesc">Opis (opcjonalnie)</label>
+      <textarea id="f-desc" data-i18n-placeholder="descPlaceholder" placeholder="Kilka słów o planie, tempie, wymaganiach…"></textarea>
+      <div class="form-note" data-i18n="formNote">🔒 Twój numer telefonu nie jest widoczny publicznie. Pokażemy go dopiero osobie, którą zaakceptujesz.</div>
+      <button class="btn btn-primary" onclick="addOffer()" data-i18n="publishBtn">Opublikuj propozycję</button>
     </section>
 
     <!-- PROFIL -->
@@ -408,28 +452,33 @@
         <div class="profile-name" id="profile-name">—</div>
         <div class="profile-sub" id="profile-sub">WspólnieGo</div>
       </div>
-      <div class="section-label">Twoje propozycje</div>
+      <div class="section-label" data-i18n="yourOffers">Twoje propozycje</div>
       <div id="my-offers"></div>
 
-      <div class="section-label" style="margin-top:22px;">Otrzymane zgłoszenia</div>
+      <div class="section-label" style="margin-top:22px;" data-i18n="pendingRequests">Otrzymane zgłoszenia</div>
       <div id="received-requests"></div>
 
-      <div class="section-label" style="margin-top:22px;">Twoje zgłoszenia do innych</div>
+      <div class="section-label" style="margin-top:22px;" data-i18n="acceptedParticipants">Uczestnicy Twoich wydarzeń</div>
+      <div id="accepted-participants"></div>
+
+      <div class="section-label" style="margin-top:22px;" data-i18n="sentRequests">Twoje zgłoszenia do innych</div>
       <div id="sent-requests"></div>
 
-      <div class="section-label" style="margin-top:22px;">Ustawienia prywatności</div>
-      <div class="list-item">Numer telefonu <span style="color:var(--forest-dark); font-weight:700;">ukryty</span></div>
-      <div class="list-item">Widoczność profilu <span style="color:var(--forest-dark); font-weight:700;">tylko po zgodzie</span></div>
+      <div class="section-label" style="margin-top:22px;" data-i18n="privacySettings">Ustawienia prywatności</div>
+      <div class="list-item"><span data-i18n="phoneLabel">Numer telefonu</span> <span style="color:var(--forest-dark); font-weight:700;" data-i18n="hiddenVal">ukryty</span></div>
+      <div class="list-item"><span data-i18n="profileVisibility">Widoczność profilu</span> <span style="color:var(--forest-dark); font-weight:700;" data-i18n="visibilityVal">tylko po zgodzie</span></div>
 
-      <div class="section-label" style="margin-top:22px;">Wsparcie projektu</div>
+      <div class="section-label" style="margin-top:22px;" data-i18n="supportTitle">Wsparcie aplikacji</div>
       <div style="background:var(--card); border:1px solid var(--line); border-radius:14px; padding:16px;">
-        <p style="font-size:14px; line-height:1.6; color:var(--ink); margin:0;">
-          Jeśli dzięki aplikacji poznałeś wartościowych ludzi, przeżyłeś ciekawą przygodę lub po prostu uważasz, że taki projekt powinien istnieć – możesz wesprzeć jego rozwój.<br>
-          Wpłać tyle, ile uważasz.
-        </p>
+        <p style="font-size:14px; line-height:1.6; color:var(--ink); margin:0;" data-i18n="supportText">Nasza aplikacja jest dla każdego. Będziemy wdzięczni za każdą wpłatę na jej dalszy rozwój.</p>
+        <div class="support-line">
+          <div class="lbl" data-i18n="supportBlikLbl">BLIK na telefon</div>
+          <div class="val">502 758 634</div>
+        </div>
+        <button class="btn btn-call" id="copy-blik-btn" onclick="copyBlik()" data-i18n="copyBlikBtn">📋 Kopiuj numer BLIK</button>
       </div>
 
-      <button class="btn btn-secondary" style="margin-top:22px;" onclick="handleSignOut()">Wyloguj się</button>
+      <button class="btn btn-secondary" style="margin-top:22px;" onclick="handleSignOut()" data-i18n="signOutBtn">Wyloguj się</button>
     </section>
   </main>
 
@@ -465,13 +514,148 @@ const SUPABASE_URL = "https://jfbydwcwxiqhmqpkotld.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpmYnlkd2N3eGlxaG1xcGtvdGxkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQyOTYzNzMsImV4cCI6MjA5OTg3MjM3M30.r37mkZltQVCWqn7BsFF1KrbNSa6P8Lkp0vUNyHds9Tc";
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-const ICONS = { gory:"🏔️", rower:"🚴", motocykl:"🏍️", woda:"🚤", kawa:"☕", basen:"🏊", zakupy:"🛍️", wyjazd:"🚗" };
+const ICONS = { gory:"🏔️", rower:"🚴", motocykl:"🏍️", woda:"🚤", kawa:"☕", basen:"🏊", zakupy:"🛍️", wyjazd:"🚗", inne:"📌" };
 
 let session = null;
 let myProfile = null;
 let offers = [];
 let currentFilter = 'all';
 let authMode = 'register';
+
+// ---------------- JĘZYK (PL/EN) ----------------
+
+const translations = {
+  pl:{
+    tagline:"Znajdź kogoś na wyjście, wyjazd albo aktywność",
+    searchPlaceholder:"Szukaj: góry, rower, kajaki, miejscowość…",
+    filterAll:"Wszystko", filterMountains:"🏔️ Góry", filterBike:"🚴 Rower", filterWater:"🚤 Woda",
+    filterCoffee:"☕ Kawa", filterMoto:"🏍️ Motocykl", filterOther:"📌 Inne",
+    feedLabel:"Blisko Ciebie · najbliższe terminy",
+    labelType:"Rodzaj aktywności",
+    optMountain:"🏔️ Spacer / szlak górski", optBike:"🚴 Wycieczka rowerowa", optMoto:"🏍️ Wycieczka motocyklowa",
+    optBoat:"🚤 Pływanie łódką / kajakiem", optCoffee:"☕ Kawa / spotkanie", optPool:"🏊 Basen",
+    optShopping:"🛍️ Wspólne zakupy", optTrip:"🚗 Wspólny wyjazd (dłuższa trasa)", optOther:"📌 Coś innego",
+    labelTitle:"Krótki tytuł", titlePlaceholder:"np. Spacer na Małą Czantorię",
+    labelDate:"Data", labelTime:"Godzina",
+    labelLoc:"Miejsce startu", locPlaceholder:"np. Parking pod Czantorią, Ustroń",
+    labelNeed:"Ilu osób szukasz i jakich?", needPlaceholder:"np. 2 osoby, dowolna płeć",
+    labelDesc:"Opis (opcjonalnie)", descPlaceholder:"Kilka słów o planie, tempie, wymaganiach…",
+    formNote:"🔒 Twój numer telefonu nie jest widoczny publicznie. Pokażemy go dopiero osobie, którą zaakceptujesz.",
+    publishBtn:"Opublikuj propozycję",
+    yourOffers:"Twoje propozycje",
+    pendingRequests:"Otrzymane zgłoszenia", acceptedParticipants:"Uczestnicy Twoich wydarzeń",
+    sentRequests:"Twoje zgłoszenia do innych",
+    privacySettings:"Ustawienia prywatności", phoneLabel:"Numer telefonu", hiddenVal:"ukryty",
+    profileVisibility:"Widoczność profilu", visibilityVal:"tylko po zgodzie",
+    supportTitle:"Wsparcie aplikacji",
+    supportText:"Nasza aplikacja jest dla każdego. Będziemy wdzięczni za każdą wpłatę na jej dalszy rozwój.",
+    supportBlikLbl:"BLIK na telefon", copyBlikBtn:"📋 Kopiuj numer BLIK", copiedBtn:"✅ Skopiowano!",
+    signOutBtn:"Wyloguj się",
+    emptyBig:"Brak propozycji w tej kategorii", emptySub:"Spróbuj innego filtra, zmień wyszukiwanie albo dodaj swoją ofertę!",
+    joinBtn:"Chcę dołączyć", backBtn:"Wróć do listy", myOfferBtn:"To Twoja oferta",
+    sendingRequest:"Wysyłanie zgłoszenia…", requestFailed:"Nie udało się wysłać zgłoszenia:",
+    requestSentTitle:"Zgłoszenie wysłane ✅",
+    requestSentBody:"Host zobaczy je w swoim profilu. Gdy je zaakceptuje, numer telefonu pojawi się w Twoim profilu, w sekcji „Twoje zgłoszenia do innych”.",
+    closeBtn:"Zamknij", callBtn:"📞 Zadzwoń teraz",
+    noOffers:"Nie masz jeszcze żadnych propozycji.", activeLbl:"aktywna", deleteBtn:"Usuń",
+    confirmDelete:"Na pewno chcesz usunąć tę propozycję? Uczestnicy nie zostaną automatycznie powiadomieni.",
+    deleteFailed:"Nie udało się usunąć:",
+    noPending:"Brak nowych zgłoszeń.", acceptBtn:"Akceptuj", declineBtn:"Odrzuć",
+    noAccepted:"Nikt jeszcze nie dołączył do Twoich wydarzeń.", removeBtn:"Usuń uczestnika",
+    confirmRemove:"Usunąć tę osobę z wydarzenia? Numer telefonu przestanie być dla niej widoczny.",
+    removeFailed:"Nie udało się usunąć uczestnika:",
+    noSent:"Nie wysłałaś/eś jeszcze żadnych zgłoszeń.",
+    statusPending:"oczekuje", statusAccepted:"zaakceptowano", statusDeclined:"odrzucono", statusCancelled:"anulowano",
+    yearsLbl:"lat", noDescText:"Brak dodatkowego opisu."
+  },
+  en:{
+    tagline:"Find someone to join you for an outing, trip or activity",
+    searchPlaceholder:"Search: mountains, biking, kayaking, town…",
+    filterAll:"All", filterMountains:"🏔️ Mountains", filterBike:"🚴 Biking", filterWater:"🚤 Water",
+    filterCoffee:"☕ Coffee", filterMoto:"🏍️ Motorcycle", filterOther:"📌 Other",
+    feedLabel:"Near you · upcoming dates",
+    labelType:"Activity type",
+    optMountain:"🏔️ Walk / mountain trail", optBike:"🚴 Bike trip", optMoto:"🏍️ Motorcycle trip",
+    optBoat:"🚤 Boating / kayaking", optCoffee:"☕ Coffee / meetup", optPool:"🏊 Swimming pool",
+    optShopping:"🛍️ Shopping together", optTrip:"🚗 Road trip (longer distance)", optOther:"📌 Something else",
+    labelTitle:"Short title", titlePlaceholder:"e.g. Walk to Mała Czantoria",
+    labelDate:"Date", labelTime:"Time",
+    labelLoc:"Starting point", locPlaceholder:"e.g. Parking lot at Czantoria, Ustroń",
+    labelNeed:"How many people, and who?", needPlaceholder:"e.g. 2 people, any gender",
+    labelDesc:"Description (optional)", descPlaceholder:"A few words about the plan, pace, requirements…",
+    formNote:"🔒 Your phone number is never public. We'll only show it to a person you accept.",
+    publishBtn:"Publish listing",
+    yourOffers:"Your listings",
+    pendingRequests:"Pending requests", acceptedParticipants:"Participants in your events",
+    sentRequests:"Your requests to others",
+    privacySettings:"Privacy settings", phoneLabel:"Phone number", hiddenVal:"hidden",
+    profileVisibility:"Profile visibility", visibilityVal:"only after consent",
+    supportTitle:"Support the app",
+    supportText:"Our app is for everyone. We'll be grateful for any contribution towards its further development.",
+    supportBlikLbl:"BLIK to phone number", copyBlikBtn:"📋 Copy BLIK number", copiedBtn:"✅ Copied!",
+    signOutBtn:"Sign out",
+    emptyBig:"No listings in this category", emptySub:"Try another filter, change your search, or add your own listing!",
+    joinBtn:"I want to join", backBtn:"Back to list", myOfferBtn:"This is your listing",
+    sendingRequest:"Sending request…", requestFailed:"Couldn't send the request:",
+    requestSentTitle:"Request sent ✅",
+    requestSentBody:"The host will see it in their profile. Once they accept, the phone number will appear in your profile, under “Your requests to others”.",
+    closeBtn:"Close", callBtn:"📞 Call now",
+    noOffers:"You don't have any listings yet.", activeLbl:"active", deleteBtn:"Delete",
+    confirmDelete:"Are you sure you want to delete this listing? Participants won't be automatically notified.",
+    deleteFailed:"Couldn't delete:",
+    noPending:"No new requests.", acceptBtn:"Accept", declineBtn:"Decline",
+    noAccepted:"No one has joined your events yet.", removeBtn:"Remove participant",
+    confirmRemove:"Remove this person from the event? They'll no longer see your phone number.",
+    removeFailed:"Couldn't remove participant:",
+    noSent:"You haven't sent any requests yet.",
+    statusPending:"pending", statusAccepted:"accepted", statusDeclined:"declined", statusCancelled:"cancelled",
+    yearsLbl:"y/o", noDescText:"No additional description."
+  }
+};
+
+let currentLang = 'pl';
+function t(key){ return translations[currentLang][key] ?? key; }
+
+function setLang(lang){
+  currentLang = lang;
+  document.documentElement.lang = lang;
+  const plBtn = document.getElementById('lang-pl');
+  const enBtn = document.getElementById('lang-en');
+  if(plBtn) plBtn.classList.toggle('on', lang === 'pl');
+  if(enBtn) enBtn.classList.toggle('on', lang === 'en');
+  applyStaticTranslations();
+  renderFeed();
+  if(session) renderProfile();
+}
+
+function applyStaticTranslations(){
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    el.textContent = t(el.getAttribute('data-i18n'));
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el=>{
+    el.placeholder = t(el.getAttribute('data-i18n-placeholder'));
+  });
+}
+
+function copyBlik(){
+  const number = "502758634";
+  const btn = document.getElementById('copy-blik-btn');
+  const finish = ()=>{
+    btn.textContent = t('copiedBtn');
+    setTimeout(()=>{ btn.textContent = t('copyBlikBtn'); }, 1800);
+  };
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(number).then(finish).catch(finish);
+  } else {
+    const tmp = document.createElement('textarea');
+    tmp.value = number;
+    document.body.appendChild(tmp);
+    tmp.select();
+    try{ document.execCommand('copy'); }catch(e){}
+    document.body.removeChild(tmp);
+    finish();
+  }
+}
 
 function escapeHtml(str){
   if(str == null) return '';
@@ -592,16 +776,24 @@ async function loadOffers(){
 
 function renderFeed(){
   const feed = document.getElementById('feed');
-  const visible = currentFilter === 'all' ? offers : offers.filter(o => o.activity_type === currentFilter);
+  const q = (document.getElementById('search-input')?.value || '').trim().toLowerCase();
+  let visible = currentFilter === 'all' ? offers : offers.filter(o => o.activity_type === currentFilter);
+  if(q){
+    visible = visible.filter(o => {
+      const hay = `${o.title || ''} ${o.location_text || ''} ${o.profiles?.display_name || ''}`.toLowerCase();
+      return hay.includes(q);
+    });
+  }
   if(visible.length === 0){
-    feed.innerHTML = `<div class="empty"><div class="big">Brak propozycji w tej kategorii</div>Spróbuj innego filtra albo dodaj swoją ofertę!</div>`;
+    feed.innerHTML = `<div class="empty"><div class="big">${t('emptyBig')}</div>${t('emptySub')}</div>`;
     return;
   }
+  const locale = currentLang === 'pl' ? 'pl-PL' : 'en-GB';
   feed.innerHTML = visible.map((o) => {
     const icon = ICONS[o.activity_type] || "📌";
     const dt = new Date(o.date_time);
-    const dateStr = dt.toLocaleDateString('pl-PL', {weekday:'short', day:'2-digit', month:'2-digit'});
-    const timeStr = dt.toLocaleTimeString('pl-PL', {hour:'2-digit', minute:'2-digit'});
+    const dateStr = dt.toLocaleDateString(locale, {weekday:'short', day:'2-digit', month:'2-digit'});
+    const timeStr = dt.toLocaleTimeString(locale, {hour:'2-digit', minute:'2-digit'});
     const hostName = o.profiles ? o.profiles.display_name : 'Użytkownik';
     const hostAge = o.profiles ? o.profiles.age : '–';
     return `
@@ -611,7 +803,7 @@ function renderFeed(){
           <div class="card-icon">${icon}</div>
           <div>
             <p class="card-title">${escapeHtml(o.title)}</p>
-            <div class="card-meta">${escapeHtml(o.location_text || 'Miejsce do ustalenia')}</div>
+            <div class="card-meta">${escapeHtml(o.location_text || (currentLang==='pl' ? 'Miejsce do ustalenia' : 'Location TBD'))}</div>
           </div>
         </div>
         <div class="card-when">${timeStr}</div>
@@ -619,7 +811,7 @@ function renderFeed(){
       ${o.participants_note ? `<div class="card-tags"><span class="tag">${escapeHtml(o.participants_note)}</span></div>` : ''}
       <div class="card-host">
         <div class="avatar">${initials(hostName)}</div>
-        ${escapeHtml(hostName)}, ${hostAge} lat &nbsp;·&nbsp; ${dateStr}
+        ${escapeHtml(hostName)}, ${hostAge} ${t('yearsLbl')} &nbsp;·&nbsp; ${dateStr}
       </div>
     </div>
   `; }).join('');
@@ -633,21 +825,22 @@ function openDetail(id){
   const isMine = o.host_id === session.user.id;
   const hostName = o.profiles ? o.profiles.display_name : 'Użytkownik';
   const hostAge = o.profiles ? o.profiles.age : '–';
+  const locale = currentLang === 'pl' ? 'pl-PL' : 'en-GB';
   const sheet = document.getElementById('sheet');
   sheet.innerHTML = `
     <div class="sheet-handle"></div>
     <div class="close-x" onclick="closeOverlay()">✕</div>
     <h2>${icon} ${escapeHtml(o.title)}</h2>
-    <div class="info-row">🗓️ <b>${dt.toLocaleDateString('pl-PL')} · ${dt.toLocaleTimeString('pl-PL',{hour:'2-digit',minute:'2-digit'})}</b></div>
-    <div class="info-row">📍 <b>${escapeHtml(o.location_text || 'Do ustalenia')}</b></div>
-    <div class="info-row">👤 <b>${escapeHtml(hostName)}, ${hostAge} lat</b></div>
+    <div class="info-row">🗓️ <b>${dt.toLocaleDateString(locale)} · ${dt.toLocaleTimeString(locale,{hour:'2-digit',minute:'2-digit'})}</b></div>
+    <div class="info-row">📍 <b>${escapeHtml(o.location_text || (currentLang==='pl'?'Do ustalenia':'TBD'))}</b></div>
+    <div class="info-row">👤 <b>${escapeHtml(hostName)}, ${hostAge} ${t('yearsLbl')}</b></div>
     ${o.participants_note ? `<div class="info-row">🙋 ${escapeHtml(o.participants_note)}</div>` : ''}
-    <p class="desc">${escapeHtml(o.description || 'Brak dodatkowego opisu.')}</p>
+    <p class="desc">${escapeHtml(o.description || t('noDescText'))}</p>
     <div id="contact-area">
       ${isMine
-        ? `<button class="btn btn-secondary" onclick="closeOverlay()">To Twoja oferta</button>`
-        : `<button class="btn btn-primary" onclick="requestContact('${o.id}')">Chcę dołączyć</button>
-           <button class="btn btn-secondary" onclick="closeOverlay()">Wróć do listy</button>`}
+        ? `<button class="btn btn-secondary" onclick="closeOverlay()">${t('myOfferBtn')}</button>`
+        : `<button class="btn btn-primary" onclick="requestContact('${o.id}')">${t('joinBtn')}</button>
+           <button class="btn btn-secondary" onclick="closeOverlay()">${t('backBtn')}</button>`}
     </div>
   `;
   document.getElementById('overlay').classList.add('show');
@@ -655,19 +848,19 @@ function openDetail(id){
 
 async function requestContact(offerId){
   const area = document.getElementById('contact-area');
-  area.innerHTML = `<div class="reveal-box">Wysyłanie zgłoszenia…</div>`;
+  area.innerHTML = `<div class="reveal-box">${t('sendingRequest')}</div>`;
   const { error } = await sb.rpc('create_join_request', { p_offer_id: offerId });
   if(error){
-    area.innerHTML = `<div class="reveal-box">Nie udało się wysłać zgłoszenia: ${escapeHtml(error.message)}</div>
-      <button class="btn btn-secondary" onclick="closeOverlay()" style="margin-top:14px;">Zamknij</button>`;
+    area.innerHTML = `<div class="reveal-box">${t('requestFailed')} ${escapeHtml(error.message)}</div>
+      <button class="btn btn-secondary" onclick="closeOverlay()" style="margin-top:14px;">${t('closeBtn')}</button>`;
     return;
   }
   area.innerHTML = `
     <div class="reveal-box">
-      Zgłoszenie wysłane ✅<br>
-      Host zobaczy je w swoim profilu. Gdy je zaakceptuje, numer telefonu pojawi się w Twoim profilu, w sekcji „Twoje zgłoszenia do innych”.
+      ${t('requestSentTitle')}<br>
+      ${t('requestSentBody')}
     </div>
-    <button class="btn btn-secondary" onclick="closeOverlay()" style="margin-top:14px;">Zamknij</button>
+    <button class="btn btn-secondary" onclick="closeOverlay()" style="margin-top:14px;">${t('closeBtn')}</button>
   `;
 }
 
@@ -685,7 +878,7 @@ async function addOffer(){
   const desc = document.getElementById('f-desc').value.trim();
 
   if(!title || !date || !time){
-    alert('Uzupełnij przynajmniej rodzaj aktywności, tytuł, datę i godzinę.');
+    alert(currentLang==='pl' ? 'Uzupełnij przynajmniej rodzaj aktywności, tytuł, datę i godzinę.' : 'Please fill in at least the activity type, title, date and time.');
     return;
   }
   const dateTimeIso = new Date(`${date}T${time}`).toISOString();
@@ -699,7 +892,7 @@ async function addOffer(){
     participants_note: need || null,
     description: desc || null
   });
-  if(error){ alert('Nie udało się dodać oferty: ' + error.message); return; }
+  if(error){ alert((currentLang==='pl'?'Nie udało się dodać oferty: ':'Couldn\'t add the listing: ') + error.message); return; }
 
   ['f-title','f-loc','f-need','f-desc','f-date','f-time'].forEach(id=>document.getElementById(id).value='');
   await loadOffers();
@@ -707,9 +900,9 @@ async function addOffer(){
 }
 
 async function deleteOffer(id){
-  if(!confirm('Na pewno chcesz usunąć tę propozycję? Uczestnicy nie zostaną automatycznie powiadomieni.')) return;
+  if(!confirm(t('confirmDelete'))) return;
   const { error } = await sb.from('offers').delete().eq('id', id);
-  if(error){ alert('Nie udało się usunąć: ' + error.message); return; }
+  if(error){ alert(t('deleteFailed') + ' ' + error.message); return; }
   await loadOffers();
   renderProfile();
 }
@@ -720,34 +913,53 @@ async function renderProfile(){
   const mineContainer = document.getElementById('my-offers');
   const mine = offers.filter(o => o.host_id === session.user.id);
   mineContainer.innerHTML = mine.length === 0
-    ? `<div class="list-item" style="color:var(--ink-soft);">Nie masz jeszcze żadnych propozycji.</div>`
+    ? `<div class="list-item" style="color:var(--ink-soft);">${t('noOffers')}</div>`
     : mine.map(o => `
       <div class="list-item">
         <span>${ICONS[o.activity_type] || "📌"} ${escapeHtml(o.title)}</span>
         <span>
-          <span style="color:var(--amber-dark); font-weight:700; margin-right:10px;">aktywna</span>
-          <button onclick="deleteOffer('${o.id}')" style="background:none; border:none; color:var(--forest-dark); font-weight:700; cursor:pointer; font-size:13px;">Usuń</button>
+          <span style="color:var(--amber-dark); font-weight:700; margin-right:10px;">${t('activeLbl')}</span>
+          <button onclick="deleteOffer('${o.id}')" class="btn-danger">${t('deleteBtn')}</button>
         </span>
       </div>
     `).join('');
 
-  // Zgłoszenia OTRZYMANE (jestem hostem)
+  const myOfferIds = mine.map(o => o.id).length ? mine.map(o => o.id) : ['00000000-0000-0000-0000-000000000000'];
+
+  // Zgłoszenia OTRZYMANE, oczekujące (jestem hostem)
   const { data: received } = await sb
     .from('join_requests')
     .select('id, status, offer_id, offers(title), profiles(display_name, age)')
     .eq('status', 'pending')
-    .in('offer_id', mine.map(o => o.id).length ? mine.map(o => o.id) : ['00000000-0000-0000-0000-000000000000']);
+    .in('offer_id', myOfferIds);
 
   const receivedContainer = document.getElementById('received-requests');
   receivedContainer.innerHTML = (!received || received.length === 0)
-    ? `<div class="list-item" style="color:var(--ink-soft);">Brak nowych zgłoszeń.</div>`
+    ? `<div class="list-item" style="color:var(--ink-soft);">${t('noPending')}</div>`
     : received.map(r => `
       <div class="list-item">
-        <span>${escapeHtml(r.profiles?.display_name || 'Ktoś')}, ${r.profiles?.age || '–'} lat → ${escapeHtml(r.offers?.title || '')}</span>
+        <span>${escapeHtml(r.profiles?.display_name || '?')}, ${r.profiles?.age || '–'} ${t('yearsLbl')} → ${escapeHtml(r.offers?.title || '')}</span>
         <span>
-          <button onclick="respondToRequest('${r.id}', true)" style="background:none; border:none; color:var(--forest-dark); font-weight:700; cursor:pointer; font-size:13px; margin-right:8px;">Akceptuj</button>
-          <button onclick="respondToRequest('${r.id}', false)" style="background:none; border:none; color:var(--ink-soft); font-weight:700; cursor:pointer; font-size:13px;">Odrzuć</button>
+          <button onclick="respondToRequest('${r.id}', true)" style="background:none; border:none; color:var(--forest-dark); font-weight:700; cursor:pointer; font-size:13px; margin-right:8px;">${t('acceptBtn')}</button>
+          <button onclick="respondToRequest('${r.id}', false)" style="background:none; border:none; color:var(--ink-soft); font-weight:700; cursor:pointer; font-size:13px;">${t('declineBtn')}</button>
         </span>
+      </div>
+    `).join('');
+
+  // Uczestnicy, którzy dołączyli do MOICH wydarzeń (zaakceptowani) — z możliwością usunięcia
+  const { data: accepted } = await sb
+    .from('join_requests')
+    .select('id, offer_id, offers(title), profiles(display_name, age)')
+    .eq('status', 'accepted')
+    .in('offer_id', myOfferIds);
+
+  const acceptedContainer = document.getElementById('accepted-participants');
+  acceptedContainer.innerHTML = (!accepted || accepted.length === 0)
+    ? `<div class="list-item" style="color:var(--ink-soft);">${t('noAccepted')}</div>`
+    : accepted.map(r => `
+      <div class="participant-row">
+        <span><span class="avatar" style="display:inline-flex; margin-right:8px; vertical-align:middle;">${initials(r.profiles?.display_name)}</span>${escapeHtml(r.profiles?.display_name || '?')}, ${r.profiles?.age || '–'} ${t('yearsLbl')} → ${escapeHtml(r.offers?.title || '')}</span>
+        <button onclick="removeParticipant('${r.id}')" class="btn-danger">${t('removeBtn')}</button>
       </div>
     `).join('');
 
@@ -759,14 +971,20 @@ async function renderProfile(){
 
   const sentContainer = document.getElementById('sent-requests');
   if(!sent || sent.length === 0){
-    sentContainer.innerHTML = `<div class="list-item" style="color:var(--ink-soft);">Nie wysłałaś/eś jeszcze żadnych zgłoszeń.</div>`;
+    sentContainer.innerHTML = `<div class="list-item" style="color:var(--ink-soft);">${t('noSent')}</div>`;
   } else {
+    const statusLabels = { pending:t('statusPending'), accepted:t('statusAccepted'), declined:t('statusDeclined'), cancelled:t('statusCancelled') };
     const rows = await Promise.all(sent.map(async (r) => {
-      const statusLabel = { pending:'oczekuje', accepted:'zaakceptowano', declined:'odrzucono', cancelled:'anulowano' }[r.status] || r.status;
+      const statusLabel = statusLabels[r.status] || r.status;
       let phoneHtml = '';
       if(r.status === 'accepted' && r.offers?.host_id){
         const { data: priv } = await sb.from('profile_private').select('phone_number').eq('id', r.offers.host_id).single();
-        if(priv) phoneHtml = `<div style="font-family:'JetBrains Mono',monospace; font-weight:700; color:var(--forest-dark); margin-top:4px;">${escapeHtml(priv.phone_number)}</div>`;
+        if(priv){
+          const telHref = "tel:+48" + priv.phone_number.replace(/\s/g,'');
+          phoneHtml = `
+            <div style="font-family:'JetBrains Mono',monospace; font-weight:700; color:var(--forest-dark); margin-top:4px;">${escapeHtml(priv.phone_number)}</div>
+            <a class="btn btn-call" style="margin-top:8px; padding:10px;" href="${telHref}">${t('callBtn')}</a>`;
+        }
       }
       return `
         <div class="list-item" style="flex-direction:column; align-items:flex-start;">
@@ -785,13 +1003,23 @@ async function renderProfile(){
 async function respondToRequest(requestId, accept){
   const fn = accept ? 'accept_join_request' : 'decline_join_request';
   const { error } = await sb.rpc(fn, { request_id: requestId });
-  if(error){ alert('Błąd: ' + error.message); return; }
+  if(error){ alert((currentLang==='pl'?'Błąd: ':'Error: ') + error.message); return; }
+  await renderProfile();
+}
+
+async function removeParticipant(requestId){
+  if(!confirm(t('confirmRemove'))) return;
+  const { error } = await sb.rpc('remove_join_request', { request_id: requestId });
+  if(error){ alert(t('removeFailed') + ' ' + error.message); return; }
   await renderProfile();
 }
 
 // ---------------- START ----------------
 
-document.addEventListener('DOMContentLoaded', initApp);
+document.addEventListener('DOMContentLoaded', () => {
+  setLang('pl');
+  initApp();
+});
 
 
 // ---- PWA: rejestracja Service Workera ----
