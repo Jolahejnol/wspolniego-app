@@ -297,6 +297,20 @@
     padding:13px 15px; margin-bottom:10px; font-size:14px; display:flex; justify-content:space-between; align-items:center;
   }
 
+  .accordion-item{
+    background:var(--card); border:1px solid var(--line); border-radius:14px;
+    margin-bottom:10px; overflow:hidden;
+  }
+  .accordion-header{
+    padding:13px 15px; font-size:14px; font-weight:700; color:var(--forest-dark);
+    display:flex; justify-content:space-between; align-items:center; cursor:pointer;
+  }
+  .accordion-chevron{ transition:transform .2s ease; color:var(--ink-soft); font-weight:700; }
+  .accordion-chevron.open{ transform:rotate(90deg); }
+  .accordion-body{ padding:0 15px 15px; font-size:13.5px; line-height:1.6; color:var(--ink); }
+  .accordion-body ol{ margin:0; padding-left:20px; }
+  .accordion-body li{ margin-bottom:6px; }
+
   .support-line{
     background:#F4EFE1; border-radius:12px; padding:12px 14px; margin:12px 0;
   }
@@ -468,6 +482,20 @@
         <div class="profile-name" id="profile-name">—</div>
         <div class="profile-sub" id="profile-sub">WspólnieGo</div>
       </div>
+
+      <div style="background:var(--card); border:1px solid var(--line); border-radius:14px; padding:16px; margin-bottom:22px;">
+        <p style="font-family:'Fraunces',serif; font-size:16px; font-weight:600; margin:0 0 8px;" data-i18n="safetyPanelTitle">🛡️ Zanim się spotkacie</p>
+        <p style="font-size:13.5px; color:var(--ink-soft); margin:0 0 10px; line-height:1.5;" data-i18n="safetyPanelIntro">Kilka prostych zasad, które warto znać przed pierwszym spotkaniem z osobą poznaną w aplikacji:</p>
+        <ul style="margin:0; padding-left:18px; font-size:13.5px; line-height:1.6; color:var(--ink);">
+          <li data-i18n="safetyTip1">Pierwsze spotkanie umów w miejscu publicznym (np. kawiarnia, parking, początek szlaku), a nie u kogoś w domu.</li>
+          <li data-i18n="safetyTip2">Powiedz bliskiej osobie, gdzie, z kim i o której się spotykasz — wyślij jej też numer telefonu drugiej osoby.</li>
+          <li data-i18n="safetyTip3">Miej naładowany telefon i, jeśli to możliwe, udostępnij swoją lokalizację bliskiej osobie na czas spotkania.</li>
+          <li data-i18n="safetyTip4">Nie przekazuj danych finansowych, haseł ani numeru dowodu osobistego przed spotkaniem ani w jego trakcie.</li>
+          <li data-i18n="safetyTip5">Ufaj swojej intuicji — jeśli coś wyda Ci się niepokojące, masz prawo zrezygnować w każdej chwili.</li>
+          <li data-i18n="safetyTip6">Jeśli ktoś zachowuje się niestosownie, zgłoś to przyciskiem „⚑ Zgłoś” — pomoże to chronić też innych.</li>
+        </ul>
+      </div>
+
       <div class="section-label" data-i18n="yourOffers">Twoje propozycje</div>
       <div id="my-offers"></div>
 
@@ -481,11 +509,46 @@
       <div id="sent-requests"></div>
 
       <div class="section-label" style="margin-top:22px;" data-i18n="privacySettings">Ustawienia prywatności</div>
-      <div class="list-item"><span data-i18n="phoneLabel">Numer telefonu</span> <span style="color:var(--forest-dark); font-weight:700;" data-i18n="hiddenVal">ukryty</span></div>
+      <div class="list-item" style="cursor:pointer;" onclick="openPhoneVerification()">
+        <span data-i18n="phoneLabel">Numer telefonu</span>
+        <span id="phone-verify-status" style="color:var(--forest-dark); font-weight:700;">—</span>
+      </div>
       <div class="list-item"><span data-i18n="profileVisibility">Widoczność profilu</span> <span style="color:var(--forest-dark); font-weight:700;" data-i18n="visibilityVal">tylko po zgodzie</span></div>
       <div class="list-item" style="cursor:pointer;" onclick="openChangePassword()">
         <span data-i18n="changePasswordLabel">Zmień hasło</span>
         <span style="color:var(--lake); font-weight:700;">›</span>
+      </div>
+
+      <div class="section-label" style="margin-top:22px;" data-i18n="installGuideTitle">📲 Jak zainstalować aplikację</div>
+      <div class="accordion-item">
+        <div class="accordion-header" onclick="toggleAccordion('acc-ios')">
+          <span data-i18n="installIosHeader">🍏 iPhone (Safari)</span>
+          <span class="accordion-chevron" id="acc-ios-chevron">›</span>
+        </div>
+        <div class="accordion-body" id="acc-ios" style="display:none;">
+          <ol>
+            <li data-i18n="installIosStep1">Otwórz WspólnieGo w przeglądarce <b>Safari</b> — nie w Chrome ani żadnej innej aplikacji.</li>
+            <li data-i18n="installIosStep2">U dołu ekranu dotknij ikony <b>„Udostępnij”</b> (kwadrat ze strzałką w górę).</li>
+            <li data-i18n="installIosStep3">Przewiń listę w dół i wybierz <b>„Dodaj do ekranu początkowego”</b>.</li>
+            <li data-i18n="installIosStep4">Dotknij <b>„Dodaj”</b> w prawym górnym rogu.</li>
+            <li data-i18n="installIosStep5">Gotowe — na ekranie głównym pojawi się ikona WspólnieGo, działająca jak zwykła aplikacja.</li>
+          </ol>
+        </div>
+      </div>
+      <div class="accordion-item">
+        <div class="accordion-header" onclick="toggleAccordion('acc-android')">
+          <span data-i18n="installAndroidHeader">🤖 Android (Chrome)</span>
+          <span class="accordion-chevron" id="acc-android-chevron">›</span>
+        </div>
+        <div class="accordion-body" id="acc-android" style="display:none;">
+          <ol>
+            <li data-i18n="installAndroidStep1">Otwórz WspólnieGo w przeglądarce <b>Chrome</b>.</li>
+            <li data-i18n="installAndroidStep2">Dotknij menu (trzy kropki) w prawym górnym rogu.</li>
+            <li data-i18n="installAndroidStep3">Wybierz <b>„Zainstaluj aplikację”</b> (lub „Dodaj do ekranu głównego”).</li>
+            <li data-i18n="installAndroidStep4">Potwierdź, dotykając <b>„Zainstaluj”</b>.</li>
+            <li data-i18n="installAndroidStep5">Gotowe — ikona pojawi się na ekranie głównym.</li>
+          </ol>
+        </div>
       </div>
 
       <div id="admin-panel-section" style="display:none;">
@@ -513,8 +576,8 @@
 
   <div id="install-banner">
     <div class="ib-icon">📲</div>
-    <div class="ib-text"><b>Zainstaluj WspólnieGo</b>Dodaj ikonę na ekran główny telefonu</div>
-    <button class="ib-install" onclick="installApp()">Zainstaluj</button>
+    <div class="ib-text"><b id="ib-title">Zainstaluj WspólnieGo</b><span id="ib-subtitle">Dodaj ikonę na ekran główny telefonu</span></div>
+    <button class="ib-install" id="ib-install-btn" onclick="handleInstallClick()">Zainstaluj</button>
     <button class="ib-dismiss" onclick="dismissInstallBanner()">✕</button>
   </div>
 
@@ -611,6 +674,47 @@ const translations = {
     adminBlockFailed:"Nie udało się zablokować:", adminActionFailed:"Nie udało się zapisać:",
     adminBlockedSuffix:"— zablokowany ✅",
     blockedAccountMsg:"Twoje konto zostało zablokowane. Jeśli uważasz, że to pomyłka, napisz na kontakt@wspolniego.pl.",
+    phoneVerifiedBadge:"✅ zweryfikowany", phoneUnverifiedBadge:"niezweryfikowany — zweryfikuj",
+    phoneVerifyTitle:"Zweryfikuj numer telefonu",
+    phoneVerifyIntro:"Wyślemy SMS-em jednorazowy kod na numer podany przy rejestracji.",
+    phoneNumberLabel:"Numer telefonu",
+    sendCodeBtn:"Wyślij kod SMS",
+    phoneVerifyEnterCode:"Wpisz 6-cyfrowy kod z SMS-a",
+    codeLabel:"Kod SMS",
+    confirmCodeBtn:"Potwierdź kod",
+    resendCodeBtn:"Wyślij kod ponownie",
+    phoneOtpSentMsg:"Kod wysłany. Sprawdź SMS-y (może dojść do minuty).",
+    phoneVerifySuccessTitle:"Numer zweryfikowany ✅",
+    phoneVerifySuccessBody:"Dzięki temu inni użytkownicy widzą, że Twój numer jest prawdziwy.",
+    phoneVerifyFailed:"Nie udało się wysłać kodu:",
+    phoneCodeFailed:"Nieprawidłowy lub wygasły kod:",
+    phoneAlreadyVerified:"Twój numer telefonu jest już zweryfikowany.",
+    verifiedTag:"✓",
+    safetyPanelTitle:"🛡️ Zanim się spotkacie",
+    safetyPanelIntro:"Kilka prostych zasad, które warto znać przed pierwszym spotkaniem z osobą poznaną w aplikacji:",
+    safetyTip1:"Pierwsze spotkanie umów w miejscu publicznym (np. kawiarnia, parking, początek szlaku), a nie u kogoś w domu.",
+    safetyTip2:"Powiedz bliskiej osobie, gdzie, z kim i o której się spotykasz — wyślij jej też numer telefonu drugiej osoby.",
+    safetyTip3:"Miej naładowany telefon i, jeśli to możliwe, udostępnij swoją lokalizację bliskiej osobie na czas spotkania.",
+    safetyTip4:"Nie przekazuj danych finansowych, haseł ani numeru dowodu osobistego przed spotkaniem ani w jego trakcie.",
+    safetyTip5:"Ufaj swojej intuicji — jeśli coś wyda Ci się niepokojące, masz prawo zrezygnować w każdej chwili.",
+    safetyTip6:"Jeśli ktoś zachowuje się niestosownie, zgłoś to przyciskiem „⚑ Zgłoś” — pomoże to chronić też innych.",
+    safetyReminderShort:"🛡️ Przypomnienie: pierwsze spotkanie umów w miejscu publicznym i poinformuj bliską osobę o planach.",
+    installGuideTitle:"📲 Jak zainstalować aplikację",
+    installIosHeader:"🍏 iPhone (Safari)",
+    installIosStep1:"Otwórz WspólnieGo w przeglądarce Safari — nie w Chrome ani żadnej innej aplikacji.",
+    installIosStep2:"U dołu ekranu dotknij ikony „Udostępnij” (kwadrat ze strzałką w górę).",
+    installIosStep3:"Przewiń listę w dół i wybierz „Dodaj do ekranu początkowego”.",
+    installIosStep4:"Dotknij „Dodaj” w prawym górnym rogu.",
+    installIosStep5:"Gotowe — na ekranie głównym pojawi się ikona WspólnieGo, działająca jak zwykła aplikacja.",
+    installAndroidHeader:"🤖 Android (Chrome)",
+    installAndroidStep1:"Otwórz WspólnieGo w przeglądarce Chrome.",
+    installAndroidStep2:"Dotknij menu (trzy kropki) w prawym górnym rogu.",
+    installAndroidStep3:"Wybierz „Zainstaluj aplikację” (lub „Dodaj do ekranu głównego”).",
+    installAndroidStep4:"Potwierdź, dotykając „Zainstaluj”.",
+    installAndroidStep5:"Gotowe — ikona pojawi się na ekranie głównym.",
+    iosInstallBannerTitle:"Zainstaluj WspólnieGo",
+    iosInstallBannerText:"Dotknij Udostępnij, a potem „Dodaj do ekranu początkowego”",
+    iosInstallBannerBtn:"Jak to zrobić?",
     supportTitle:"Wsparcie aplikacji",
     supportText:"Nasza aplikacja jest dla każdego. Będziemy wdzięczni za każdą wpłatę na jej dalszy rozwój.",
     supportBlikLbl:"BLIK na telefon", copyBlikBtn:"📋 Kopiuj numer BLIK", copiedBtn:"✅ Skopiowano!",
@@ -683,6 +787,47 @@ const translations = {
     adminBlockFailed:"Couldn't block:", adminActionFailed:"Couldn't save:",
     adminBlockedSuffix:"— blocked ✅",
     blockedAccountMsg:"Your account has been blocked. If you think this is a mistake, email kontakt@wspolniego.pl.",
+    phoneVerifiedBadge:"✅ verified", phoneUnverifiedBadge:"not verified — verify",
+    phoneVerifyTitle:"Verify your phone number",
+    phoneVerifyIntro:"We'll text a one-time code to the number you gave at sign-up.",
+    phoneNumberLabel:"Phone number",
+    sendCodeBtn:"Send SMS code",
+    phoneVerifyEnterCode:"Enter the 6-digit code from the text",
+    codeLabel:"SMS code",
+    confirmCodeBtn:"Confirm code",
+    resendCodeBtn:"Resend code",
+    phoneOtpSentMsg:"Code sent. Check your texts (may take up to a minute).",
+    phoneVerifySuccessTitle:"Phone verified ✅",
+    phoneVerifySuccessBody:"Other users will now see your number is real.",
+    phoneVerifyFailed:"Couldn't send the code:",
+    phoneCodeFailed:"Invalid or expired code:",
+    phoneAlreadyVerified:"Your phone number is already verified.",
+    verifiedTag:"✓",
+    safetyPanelTitle:"🛡️ Before you meet up",
+    safetyPanelIntro:"A few simple rules worth knowing before meeting someone from the app for the first time:",
+    safetyTip1:"Arrange your first meeting in a public place (a café, a car park, a trailhead) rather than at someone's home.",
+    safetyTip2:"Tell someone close to you where, with whom, and when you're meeting — share the other person's phone number too.",
+    safetyTip3:"Keep your phone charged and, if possible, share your location with someone you trust for the duration of the meetup.",
+    safetyTip4:"Don't share financial details, passwords, or ID numbers before or during the meeting.",
+    safetyTip5:"Trust your instincts — if something feels off, you're allowed to back out at any time.",
+    safetyTip6:"If someone behaves inappropriately, report it with the „⚑ Report” button — it helps protect other users too.",
+    safetyReminderShort:"🛡️ Reminder: meet in a public place first and let someone close to you know your plans.",
+    installGuideTitle:"📲 How to install the app",
+    installIosHeader:"🍏 iPhone (Safari)",
+    installIosStep1:"Open WspólnieGo in Safari — not in Chrome or any other app.",
+    installIosStep2:"At the bottom of the screen, tap the Share icon (a square with an arrow pointing up).",
+    installIosStep3:"Scroll down the list and choose „Add to Home Screen”.",
+    installIosStep4:"Tap „Add” in the top-right corner.",
+    installIosStep5:"Done — a WspólnieGo icon will appear on your home screen and work just like a regular app.",
+    installAndroidHeader:"🤖 Android (Chrome)",
+    installAndroidStep1:"Open WspólnieGo in Chrome.",
+    installAndroidStep2:"Tap the menu (three dots) in the top-right corner.",
+    installAndroidStep3:"Choose „Install app” (or „Add to Home screen”).",
+    installAndroidStep4:"Confirm by tapping „Install”.",
+    installAndroidStep5:"Done — the icon will appear on your home screen.",
+    iosInstallBannerTitle:"Install WspólnieGo",
+    iosInstallBannerText:"Tap Share, then „Add to Home Screen”",
+    iosInstallBannerBtn:"How do I do that?",
     supportTitle:"Support the app",
     supportText:"Our app is for everyone. We'll be grateful for any contribution towards its further development.",
     supportBlikLbl:"BLIK to phone number", copyBlikBtn:"📋 Copy BLIK number", copiedBtn:"✅ Copied!",
@@ -718,6 +863,7 @@ function setLang(lang){
   if(enBtn) enBtn.classList.toggle('on', lang === 'en');
   applyStaticTranslations();
   renderFeed();
+  updatePhoneVerifyStatus();
   if(session) renderProfile();
 }
 
@@ -728,6 +874,14 @@ function applyStaticTranslations(){
   document.querySelectorAll('[data-i18n-placeholder]').forEach(el=>{
     el.placeholder = t(el.getAttribute('data-i18n-placeholder'));
   });
+}
+
+function toggleAccordion(id){
+  const body = document.getElementById(id);
+  const chevron = document.getElementById(id + '-chevron');
+  const isOpen = body.style.display === 'block';
+  body.style.display = isOpen ? 'none' : 'block';
+  if(chevron) chevron.classList.toggle('open', !isOpen);
 }
 
 function copyBlik(){
@@ -838,6 +992,94 @@ async function submitChangePassword(){
   `;
 }
 
+// ---------------- WERYFIKACJA TELEFONU (SMS) ----------------
+
+let phoneVerifyE164 = null;
+
+function toE164Poland(raw){
+  let digits = (raw || '').replace(/[^\d+]/g, '');
+  if(digits.startsWith('+')) return digits;
+  if(digits.startsWith('48')) return '+' + digits;
+  return '+48' + digits;
+}
+
+async function openPhoneVerification(){
+  const sheet = document.getElementById('sheet');
+  if(myProfile && myProfile.phone_verified){
+    sheet.innerHTML = `
+      <div class="sheet-handle"></div>
+      <div class="close-x" onclick="closeOverlay()">✕</div>
+      <h2>${t('phoneVerifyTitle')}</h2>
+      <p class="desc">${t('phoneAlreadyVerified')}</p>
+      <button class="btn btn-secondary" onclick="closeOverlay()">${t('closeBtn')}</button>
+    `;
+    document.getElementById('overlay').classList.add('show');
+    return;
+  }
+  const { data: priv } = await sb.from('profile_private').select('phone_number').eq('id', session.user.id).single();
+  const prefill = priv ? priv.phone_number : '';
+  sheet.innerHTML = `
+    <div class="sheet-handle"></div>
+    <div class="close-x" onclick="closeOverlay()">✕</div>
+    <h2>${t('phoneVerifyTitle')}</h2>
+    <p class="desc">${t('phoneVerifyIntro')}</p>
+    <label>${t('phoneNumberLabel')}</label>
+    <input id="pv-phone" type="tel" value="${escapeHtml(prefill)}" placeholder="600 123 456">
+    <button class="btn btn-primary" onclick="sendPhoneOtp()">${t('sendCodeBtn')}</button>
+    <div id="pv-error" style="color:var(--amber-dark); font-size:13px; margin-top:12px; text-align:center;"></div>
+  `;
+  document.getElementById('overlay').classList.add('show');
+}
+
+async function sendPhoneOtp(){
+  const rawPhone = document.getElementById('pv-phone').value;
+  const errEl = document.getElementById('pv-error');
+  errEl.textContent = '';
+  phoneVerifyE164 = toE164Poland(rawPhone);
+  const { error } = await sb.auth.updateUser({ phone: phoneVerifyE164 });
+  if(error){ errEl.textContent = t('phoneVerifyFailed') + ' ' + error.message; return; }
+  const sheet = document.getElementById('sheet');
+  sheet.innerHTML = `
+    <div class="sheet-handle"></div>
+    <div class="close-x" onclick="closeOverlay()">✕</div>
+    <h2>${t('phoneVerifyTitle')}</h2>
+    <p class="desc">${t('phoneOtpSentMsg')}</p>
+    <label>${t('codeLabel')}</label>
+    <input id="pv-code" type="text" inputmode="numeric" placeholder="123456" maxlength="6">
+    <button class="btn btn-primary" onclick="confirmPhoneOtp()">${t('confirmCodeBtn')}</button>
+    <button class="btn btn-secondary" onclick="sendPhoneOtp2Again()">${t('resendCodeBtn')}</button>
+    <div id="pv-error" style="color:var(--amber-dark); font-size:13px; margin-top:12px; text-align:center;"></div>
+  `;
+}
+
+async function sendPhoneOtp2Again(){
+  const errEl = document.getElementById('pv-error');
+  const { error } = await sb.auth.updateUser({ phone: phoneVerifyE164 });
+  if(error){ errEl.textContent = t('phoneVerifyFailed') + ' ' + error.message; return; }
+  errEl.style.color = 'var(--forest-dark)';
+  errEl.textContent = t('phoneOtpSentMsg');
+}
+
+async function confirmPhoneOtp(){
+  const code = document.getElementById('pv-code').value.trim();
+  const errEl = document.getElementById('pv-error');
+  errEl.textContent = '';
+  const { error: verifyErr } = await sb.auth.verifyOtp({ phone: phoneVerifyE164, token: code, type: 'phone_change' });
+  if(verifyErr){ errEl.textContent = t('phoneCodeFailed') + ' ' + verifyErr.message; return; }
+  const { error: markErr } = await sb.rpc('mark_phone_verified');
+  if(markErr){ errEl.textContent = t('phoneCodeFailed') + ' ' + markErr.message; return; }
+  if(myProfile) myProfile.phone_verified = true;
+  updatePhoneVerifyStatus();
+  const sheet = document.getElementById('sheet');
+  sheet.innerHTML = `
+    <div class="sheet-handle"></div>
+    <div class="close-x" onclick="closeOverlay()">✕</div>
+    <h2>${t('phoneVerifySuccessTitle')}</h2>
+    <p class="desc">${t('phoneVerifySuccessBody')}</p>
+    <button class="btn btn-secondary" onclick="closeOverlay()">${t('closeBtn')}</button>
+  `;
+}
+
 async function handleSignUp(){
   const email = document.getElementById('auth-email').value.trim();
   const password = document.getElementById('auth-password').value;
@@ -902,7 +1144,15 @@ async function initApp(){
   document.getElementById('profile-avatar').textContent = initials(myProfile.display_name);
   document.getElementById('profile-name').textContent = `${myProfile.display_name}, ${myProfile.age} lat`;
   document.getElementById('admin-panel-section').style.display = myProfile.is_admin ? 'block' : 'none';
+  updatePhoneVerifyStatus();
   await loadOffers();
+}
+
+function updatePhoneVerifyStatus(){
+  const el = document.getElementById('phone-verify-status');
+  if(!el || !myProfile) return;
+  el.textContent = myProfile.phone_verified ? t('phoneVerifiedBadge') : t('phoneUnverifiedBadge');
+  el.style.color = myProfile.phone_verified ? 'var(--forest-dark)' : 'var(--amber-dark)';
 }
 
 // ---------------- NAWIGACJA ----------------
@@ -927,7 +1177,7 @@ function setFilter(type, el){
 async function loadOffers(){
   const { data, error } = await sb
     .from('offers')
-    .select('*, profiles(display_name, age)')
+    .select('*, profiles(display_name, age, phone_verified)')
     .eq('status', 'active')
     .order('date_time', { ascending: true });
   if(error){ console.error(error); return; }
@@ -957,6 +1207,7 @@ function renderFeed(){
     const timeStr = dt.toLocaleTimeString(locale, {hour:'2-digit', minute:'2-digit'});
     const hostName = o.profiles ? o.profiles.display_name : 'Użytkownik';
     const hostAge = o.profiles ? o.profiles.age : '–';
+    const verifiedTag = o.profiles?.phone_verified ? ` <span style="color:var(--forest-dark);" title="${t('phoneVerifiedBadge')}">${t('verifiedTag')}</span>` : '';
     return `
     <div class="card" onclick="openDetail('${o.id}')">
       <div class="card-top">
@@ -972,7 +1223,7 @@ function renderFeed(){
       ${o.participants_note ? `<div class="card-tags"><span class="tag">${escapeHtml(o.participants_note)}</span></div>` : ''}
       <div class="card-host">
         <div class="avatar">${initials(hostName)}</div>
-        ${escapeHtml(hostName)}, ${hostAge} ${t('yearsLbl')} &nbsp;·&nbsp; ${dateStr}
+        ${escapeHtml(hostName)}${verifiedTag}, ${hostAge} ${t('yearsLbl')} &nbsp;·&nbsp; ${dateStr}
       </div>
     </div>
   `; }).join('');
@@ -986,6 +1237,7 @@ function openDetail(id){
   const isMine = o.host_id === session.user.id;
   const hostName = o.profiles ? o.profiles.display_name : 'Użytkownik';
   const hostAge = o.profiles ? o.profiles.age : '–';
+  const verifiedTag = o.profiles?.phone_verified ? ` <span style="color:var(--forest-dark);" title="${t('phoneVerifiedBadge')}">${t('verifiedTag')}</span>` : '';
   const locale = currentLang === 'pl' ? 'pl-PL' : 'en-GB';
   const sheet = document.getElementById('sheet');
   sheet.innerHTML = `
@@ -994,7 +1246,7 @@ function openDetail(id){
     <h2>${icon} ${escapeHtml(o.title)}</h2>
     <div class="info-row">🗓️ <b>${dt.toLocaleDateString(locale)} · ${dt.toLocaleTimeString(locale,{hour:'2-digit',minute:'2-digit'})}</b></div>
     <div class="info-row">📍 <b>${escapeHtml(o.location_text || (currentLang==='pl'?'Do ustalenia':'TBD'))}</b></div>
-    <div class="info-row">👤 <b>${escapeHtml(hostName)}, ${hostAge} ${t('yearsLbl')}</b></div>
+    <div class="info-row">👤 <b>${escapeHtml(hostName)}${verifiedTag}, ${hostAge} ${t('yearsLbl')}</b></div>
     ${o.participants_note ? `<div class="info-row">🙋 ${escapeHtml(o.participants_note)}</div>` : ''}
     <p class="desc">${escapeHtml(o.description || t('noDescText'))}</p>
     <div id="contact-area">
@@ -1193,7 +1445,8 @@ async function renderProfile(){
           const telHref = "tel:+48" + priv.phone_number.replace(/\s/g,'');
           phoneHtml = `
             <div style="font-family:'JetBrains Mono',monospace; font-weight:700; color:var(--forest-dark); margin-top:4px;">${escapeHtml(priv.phone_number)}</div>
-            <a class="btn btn-call" style="margin-top:8px; padding:10px;" href="${telHref}">${t('callBtn')}</a>`;
+            <a class="btn btn-call" style="margin-top:8px; padding:10px;" href="${telHref}">${t('callBtn')}</a>
+            <div style="font-size:12px; color:var(--ink-soft); margin-top:8px; line-height:1.4;">${t('safetyReminderShort')}</div>`;
         }
       }
       return `
@@ -1317,6 +1570,32 @@ window.addEventListener('beforeinstallprompt', (e) => {
   if (banner) banner.style.display = 'flex';
 });
 
+function isIosSafariNotInstalled(){
+  const ua = window.navigator.userAgent;
+  const isIos = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
+  const isStandalone = window.navigator.standalone === true
+    || window.matchMedia('(display-mode: standalone)').matches;
+  return isIos && !isStandalone;
+}
+
+function handleInstallClick(){
+  const banner = document.getElementById('install-banner');
+  if(isIosSafariNotInstalled()){
+    // Na iOS nie ma programowego okna instalacji — pokazujemy naszą instrukcję.
+    if (banner) banner.style.display = 'none';
+    showTab('tab-profile', document.querySelector('nav button[data-tab="tab-profile"]'));
+    const acc = document.getElementById('acc-ios');
+    if(acc){
+      acc.style.display = 'block';
+      const chevron = document.getElementById('acc-ios-chevron');
+      if(chevron) chevron.classList.add('open');
+      acc.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    return;
+  }
+  installApp();
+}
+
 function installApp(){
   const banner = document.getElementById('install-banner');
   if (banner) banner.style.display = 'none';
@@ -1335,6 +1614,21 @@ window.addEventListener('appinstalled', () => {
   const banner = document.getElementById('install-banner');
   if (banner) banner.style.display = 'none';
 });
+
+// iOS Safari nigdy nie wywoła "beforeinstallprompt" — pokazujemy baner sami,
+// z innym tekstem i przyciskiem prowadzącym do instrukcji zamiast promptu.
+if (isIosSafariNotInstalled()) {
+  const banner = document.getElementById('install-banner');
+  const title = document.getElementById('ib-title');
+  const subtitle = document.getElementById('ib-subtitle');
+  const btn = document.getElementById('ib-install-btn');
+  if (banner && title && subtitle && btn) {
+    title.textContent = t('iosInstallBannerTitle');
+    subtitle.textContent = t('iosInstallBannerText');
+    btn.textContent = t('iosInstallBannerBtn');
+    banner.style.display = 'flex';
+  }
+}
 </script>
 
 </body>
