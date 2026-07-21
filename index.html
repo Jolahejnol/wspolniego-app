@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pl">
 <head>
@@ -489,6 +488,11 @@
         <span style="color:var(--lake); font-weight:700;">›</span>
       </div>
 
+      <div id="admin-panel-section" style="display:none;">
+        <div class="section-label" style="margin-top:22px;" data-i18n="adminPanelTitle">🛡️ Panel moderacji</div>
+        <div id="admin-reports"></div>
+      </div>
+
       <div class="section-label" style="margin-top:22px;" data-i18n="supportTitle">Wsparcie aplikacji</div>
       <div style="background:var(--card); border:1px solid var(--line); border-radius:14px; padding:16px;">
         <p style="font-size:14px; line-height:1.6; color:var(--ink); margin:0;" data-i18n="supportText">Nasza aplikacja jest dla każdego. Będziemy wdzięczni za każdą wpłatę na jej dalszy rozwój.</p>
@@ -583,6 +587,30 @@ const translations = {
     cpSaveBtn:"Zapisz nowe hasło", cpTooShort:"Hasło musi mieć min. 6 znaków.",
     cpMismatch:"Hasła nie są takie same.", cpFailed:"Nie udało się zmienić hasła:",
     cpDoneTitle:"Hasło zmienione ✅", cpDoneBody:"Od teraz logujesz się nowym hasłem.",
+    reportBtn:"⚑ Zgłoś", reportModalTitle:"Zgłoś użytkownika",
+    reportReasonLabel:"Powód zgłoszenia",
+    reportReason1:"Nieodpowiednie / obraźliwe zachowanie",
+    reportReason2:"Podejrzenie fałszywego konta",
+    reportReason3:"Próba oszustwa lub zagrożenie bezpieczeństwa",
+    reportReason4:"Spam lub treści niezwiązane z aplikacją",
+    reportReason5:"Inne",
+    reportDescLabel:"Dodatkowe informacje (opcjonalnie)",
+    reportSubmitBtn:"Wyślij zgłoszenie",
+    reportSentTitle:"Zgłoszenie wysłane ✅",
+    reportSentBody:"Dziękujemy — zespół WspólnieGo przyjrzy się zgłoszeniu. W pilnych sprawach napisz na kontakt@wspolniego.pl.",
+    reportFailed:"Nie udało się wysłać zgłoszenia:",
+    adminPanelTitle:"🛡️ Panel moderacji",
+    adminNoReports:"Brak nowych zgłoszeń.",
+    adminReportedLbl:"Zgłoszony",
+    adminReporterLbl:"Zgłaszający",
+    adminRelatedOfferLbl:"Powiązana oferta",
+    adminBlockBtn:"Zablokuj użytkownika",
+    adminDismissBtn:"Odrzuć",
+    adminResolveBtn:"Rozwiązane",
+    adminConfirmBlock:"Zablokować to konto? Użytkownik nie będzie mógł dodawać nowych ofert ani dołączać do wydarzeń, a jego aktywne oferty znikną z listy.",
+    adminBlockFailed:"Nie udało się zablokować:", adminActionFailed:"Nie udało się zapisać:",
+    adminBlockedSuffix:"— zablokowany ✅",
+    blockedAccountMsg:"Twoje konto zostało zablokowane. Jeśli uważasz, że to pomyłka, napisz na kontakt@wspolniego.pl.",
     supportTitle:"Wsparcie aplikacji",
     supportText:"Nasza aplikacja jest dla każdego. Będziemy wdzięczni za każdą wpłatę na jej dalszy rozwój.",
     supportBlikLbl:"BLIK na telefon", copyBlikBtn:"📋 Kopiuj numer BLIK", copiedBtn:"✅ Skopiowano!",
@@ -631,6 +659,30 @@ const translations = {
     cpSaveBtn:"Save new password", cpTooShort:"Password must be at least 6 characters.",
     cpMismatch:"Passwords don't match.", cpFailed:"Couldn't change password:",
     cpDoneTitle:"Password changed ✅", cpDoneBody:"You'll now sign in with your new password.",
+    reportBtn:"⚑ Report", reportModalTitle:"Report user",
+    reportReasonLabel:"Reason for report",
+    reportReason1:"Inappropriate / offensive behavior",
+    reportReason2:"Suspected fake account",
+    reportReason3:"Attempted scam or safety concern",
+    reportReason4:"Spam or unrelated content",
+    reportReason5:"Other",
+    reportDescLabel:"Additional details (optional)",
+    reportSubmitBtn:"Send report",
+    reportSentTitle:"Report sent ✅",
+    reportSentBody:"Thank you — the WspólnieGo team will review it. For urgent matters, email kontakt@wspolniego.pl.",
+    reportFailed:"Couldn't send the report:",
+    adminPanelTitle:"🛡️ Moderation panel",
+    adminNoReports:"No new reports.",
+    adminReportedLbl:"Reported",
+    adminReporterLbl:"Reporter",
+    adminRelatedOfferLbl:"Related listing",
+    adminBlockBtn:"Block user",
+    adminDismissBtn:"Dismiss",
+    adminResolveBtn:"Resolved",
+    adminConfirmBlock:"Block this account? The user won't be able to create listings or join events, and their active listings will disappear from the feed.",
+    adminBlockFailed:"Couldn't block:", adminActionFailed:"Couldn't save:",
+    adminBlockedSuffix:"— blocked ✅",
+    blockedAccountMsg:"Your account has been blocked. If you think this is a mistake, email kontakt@wspolniego.pl.",
     supportTitle:"Support the app",
     supportText:"Our app is for everyone. We'll be grateful for any contribution towards its further development.",
     supportBlikLbl:"BLIK to phone number", copyBlikBtn:"📋 Copy BLIK number", copiedBtn:"✅ Copied!",
@@ -837,10 +889,19 @@ async function initApp(){
   }
   const { data: prof } = await sb.from('profiles').select('*').eq('id', session.user.id).single();
   myProfile = prof;
+  if(myProfile && myProfile.blocked){
+    await sb.auth.signOut();
+    session = null;
+    document.getElementById('auth-screen').style.display = 'block';
+    document.querySelectorAll('.app-ui').forEach(el => el.style.display = 'none');
+    showAuthError(t('blockedAccountMsg'));
+    return;
+  }
   document.getElementById('auth-screen').style.display = 'none';
   document.querySelectorAll('.app-ui').forEach(el => el.style.display = '');
   document.getElementById('profile-avatar').textContent = initials(myProfile.display_name);
   document.getElementById('profile-name').textContent = `${myProfile.display_name}, ${myProfile.age} lat`;
+  document.getElementById('admin-panel-section').style.display = myProfile.is_admin ? 'block' : 'none';
   await loadOffers();
 }
 
@@ -940,7 +1001,8 @@ function openDetail(id){
       ${isMine
         ? `<button class="btn btn-secondary" onclick="closeOverlay()">${t('myOfferBtn')}</button>`
         : `<button class="btn btn-primary" onclick="requestContact('${o.id}')">${t('joinBtn')}</button>
-           <button class="btn btn-secondary" onclick="closeOverlay()">${t('backBtn')}</button>`}
+           <button class="btn btn-secondary" onclick="closeOverlay()">${t('backBtn')}</button>
+           <button class="btn-danger" style="display:block; width:100%; text-align:center; margin-top:14px; padding:8px;" onclick="openReportForm('${o.host_id}','${o.id}')">${t('reportBtn')}</button>`}
     </div>
   `;
   document.getElementById('overlay').classList.add('show');
@@ -966,6 +1028,51 @@ async function requestContact(offerId){
 
 function closeOverlay(){
   document.getElementById('overlay').classList.remove('show');
+}
+
+function openReportForm(reportedUserId, reportedOfferId){
+  const sheet = document.getElementById('sheet');
+  sheet.innerHTML = `
+    <div class="sheet-handle"></div>
+    <div class="close-x" onclick="closeOverlay()">✕</div>
+    <h2>${t('reportModalTitle')}</h2>
+    <label>${t('reportReasonLabel')}</label>
+    <select id="report-reason">
+      <option value="behavior">${t('reportReason1')}</option>
+      <option value="fake_account">${t('reportReason2')}</option>
+      <option value="scam_safety">${t('reportReason3')}</option>
+      <option value="spam">${t('reportReason4')}</option>
+      <option value="other">${t('reportReason5')}</option>
+    </select>
+    <label>${t('reportDescLabel')}</label>
+    <textarea id="report-desc"></textarea>
+    <button class="btn btn-primary" onclick="submitReport('${reportedUserId}', ${reportedOfferId ? `'${reportedOfferId}'` : 'null'})">${t('reportSubmitBtn')}</button>
+    <button class="btn btn-secondary" onclick="closeOverlay()">${t('backBtn')}</button>
+    <div id="report-error" style="color:var(--amber-dark); font-size:13px; margin-top:12px; text-align:center;"></div>
+  `;
+  document.getElementById('overlay').classList.add('show');
+}
+
+async function submitReport(reportedUserId, reportedOfferId){
+  const reason = document.getElementById('report-reason').value;
+  const description = document.getElementById('report-desc').value.trim();
+  const errEl = document.getElementById('report-error');
+  const { error } = await sb.from('reports').insert({
+    reporter_id: session.user.id,
+    reported_user_id: reportedUserId,
+    reported_offer_id: reportedOfferId,
+    reason: reason,
+    description: description || null
+  });
+  if(error){ errEl.textContent = t('reportFailed') + ' ' + error.message; return; }
+  const sheet = document.getElementById('sheet');
+  sheet.innerHTML = `
+    <div class="sheet-handle"></div>
+    <div class="close-x" onclick="closeOverlay()">✕</div>
+    <h2>${t('reportSentTitle')}</h2>
+    <p class="desc">${t('reportSentBody')}</p>
+    <button class="btn btn-secondary" onclick="closeOverlay()">${t('closeBtn')}</button>
+  `;
 }
 
 async function addOffer(){
@@ -1049,7 +1156,7 @@ async function renderProfile(){
   // Uczestnicy, którzy dołączyli do MOICH wydarzeń (zaakceptowani) — z możliwością usunięcia
   const { data: accepted } = await sb
     .from('join_requests')
-    .select('id, offer_id, offers(title), profiles(display_name, age)')
+    .select('id, offer_id, requester_id, offers(title), profiles(display_name, age)')
     .eq('status', 'accepted')
     .in('offer_id', myOfferIds);
 
@@ -1059,7 +1166,10 @@ async function renderProfile(){
     : accepted.map(r => `
       <div class="participant-row">
         <span><span class="avatar" style="display:inline-flex; margin-right:8px; vertical-align:middle;">${initials(r.profiles?.display_name)}</span>${escapeHtml(r.profiles?.display_name || '?')}, ${r.profiles?.age || '–'} ${t('yearsLbl')} → ${escapeHtml(r.offers?.title || '')}</span>
-        <button onclick="removeParticipant('${r.id}')" class="btn-danger">${t('removeBtn')}</button>
+        <span>
+          <button onclick="openReportForm('${r.requester_id}','${r.offer_id}')" class="btn-danger" style="margin-right:8px;">${t('reportBtn')}</button>
+          <button onclick="removeParticipant('${r.id}')" class="btn-danger">${t('removeBtn')}</button>
+        </span>
       </div>
     `).join('');
 
@@ -1098,6 +1208,10 @@ async function renderProfile(){
     }));
     sentContainer.innerHTML = rows.join('');
   }
+
+  if(myProfile && myProfile.is_admin){
+    await loadAdminReports();
+  }
 }
 
 async function respondToRequest(requestId, accept){
@@ -1112,6 +1226,69 @@ async function removeParticipant(requestId){
   const { error } = await sb.rpc('remove_join_request', { request_id: requestId });
   if(error){ alert(t('removeFailed') + ' ' + error.message); return; }
   await renderProfile();
+}
+
+// ---------------- PANEL MODERACJI (tylko admin) ----------------
+
+const REPORT_REASON_KEYS = {
+  behavior:'reportReason1', fake_account:'reportReason2',
+  scam_safety:'reportReason3', spam:'reportReason4', other:'reportReason5'
+};
+
+async function loadAdminReports(){
+  const container = document.getElementById('admin-reports');
+  const { data, error } = await sb
+    .from('reports')
+    .select(`
+      id, reason, description, status, created_at, reported_offer_id,
+      reporter:profiles!reports_reporter_id_fkey(display_name),
+      reported:profiles!reports_reported_user_id_fkey(id, display_name, blocked),
+      offers(title)
+    `)
+    .eq('status', 'pending')
+    .order('created_at', { ascending: false });
+
+  if(error){
+    container.innerHTML = `<div class="list-item" style="color:var(--ink-soft);">${t('adminActionFailed')} ${escapeHtml(error.message)}</div>`;
+    return;
+  }
+  renderAdminReports(data || []);
+}
+
+function renderAdminReports(reports){
+  const container = document.getElementById('admin-reports');
+  if(reports.length === 0){
+    container.innerHTML = `<div class="list-item" style="color:var(--ink-soft);">${t('adminNoReports')}</div>`;
+    return;
+  }
+  container.innerHTML = reports.map(r => `
+    <div class="list-item" style="flex-direction:column; align-items:flex-start;">
+      <div style="font-weight:700; margin-bottom:4px;">${t(REPORT_REASON_KEYS[r.reason] || 'reportReason5')}</div>
+      <div style="font-size:13px; color:var(--ink-soft);">${t('adminReportedLbl')}: ${escapeHtml(r.reported?.display_name || '?')}${r.reported?.blocked ? ' ' + t('adminBlockedSuffix') : ''}</div>
+      <div style="font-size:13px; color:var(--ink-soft);">${t('adminReporterLbl')}: ${escapeHtml(r.reporter?.display_name || '?')}</div>
+      ${r.offers?.title ? `<div style="font-size:13px; color:var(--ink-soft);">${t('adminRelatedOfferLbl')}: ${escapeHtml(r.offers.title)}</div>` : ''}
+      ${r.description ? `<div style="font-size:13.5px; margin-top:6px;">${escapeHtml(r.description)}</div>` : ''}
+      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; width:100%;">
+        ${!r.reported?.blocked ? `<button onclick="adminBlockUser('${r.reported?.id}','${r.id}')" class="btn-danger">${t('adminBlockBtn')}</button>` : ''}
+        <button onclick="adminSetReportStatus('${r.id}','resolved')" style="background:none; border:none; color:var(--forest-dark); font-weight:700; cursor:pointer; font-size:13px;">${t('adminResolveBtn')}</button>
+        <button onclick="adminSetReportStatus('${r.id}','dismissed')" style="background:none; border:none; color:var(--ink-soft); font-weight:700; cursor:pointer; font-size:13px;">${t('adminDismissBtn')}</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function adminBlockUser(userId, reportId){
+  if(!confirm(t('adminConfirmBlock'))) return;
+  const { error } = await sb.rpc('admin_set_blocked', { target_user_id: userId, new_blocked: true });
+  if(error){ alert(t('adminBlockFailed') + ' ' + error.message); return; }
+  if(reportId){ await sb.from('reports').update({ status: 'resolved' }).eq('id', reportId); }
+  await loadAdminReports();
+}
+
+async function adminSetReportStatus(reportId, status){
+  const { error } = await sb.from('reports').update({ status }).eq('id', reportId);
+  if(error){ alert(t('adminActionFailed') + ' ' + error.message); return; }
+  await loadAdminReports();
 }
 
 // ---------------- START ----------------
