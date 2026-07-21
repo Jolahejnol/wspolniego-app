@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pl">
 <head>
@@ -362,6 +363,9 @@
     <input id="auth-email" type="email" placeholder="ty@przyklad.pl">
     <label>Hasło</label>
     <input id="auth-password" type="password" placeholder="min. 6 znaków">
+    <div id="forgot-password-link" style="display:none; text-align:right; margin-top:8px;">
+      <a href="#" onclick="event.preventDefault(); handleForgotPassword();" style="font-size:12.5px; color:var(--lake); font-weight:600; text-decoration:none;">Nie pamiętasz hasła?</a>
+    </div>
     <div id="auth-register-fields">
       <label>Twoje imię</label>
       <input id="auth-name" type="text" placeholder="np. Tadeusz">
@@ -374,6 +378,19 @@
     <button class="btn btn-primary" id="auth-submit-btn" onclick="handleSignUp()">Załóż konto</button>
     <button class="btn btn-secondary" id="auth-toggle-btn" onclick="toggleAuthMode()">Mam już konto — zaloguj się</button>
     <div id="auth-error" style="color:var(--amber-dark); font-size:13px; margin-top:12px; text-align:center;"></div>
+  </div>
+
+  <div id="recovery-screen" style="display:none; position:absolute; inset:0; background:var(--paper); z-index:55; padding:36px 20px 20px; overflow-y:auto;">
+    <div style="text-align:center; margin-bottom:26px;">
+      <div style="font-family:'Fraunces',serif; font-size:26px; font-weight:600; color:var(--forest-dark);">Wspólnie<span style="color:var(--amber);">Go</span></div>
+      <div style="font-size:13px; color:var(--ink-soft); margin-top:6px;">Ustaw nowe hasło</div>
+    </div>
+    <label>Nowe hasło</label>
+    <input id="recovery-password" type="password" placeholder="min. 6 znaków">
+    <label>Powtórz nowe hasło</label>
+    <input id="recovery-password-confirm" type="password" placeholder="powtórz hasło">
+    <button class="btn btn-primary" onclick="handlePasswordUpdate()">Ustaw nowe hasło</button>
+    <div id="recovery-error" style="color:var(--amber-dark); font-size:13px; margin-top:12px; text-align:center;"></div>
   </div>
 
   <header class="app-ui" style="display:none;">
@@ -467,6 +484,10 @@
       <div class="section-label" style="margin-top:22px;" data-i18n="privacySettings">Ustawienia prywatności</div>
       <div class="list-item"><span data-i18n="phoneLabel">Numer telefonu</span> <span style="color:var(--forest-dark); font-weight:700;" data-i18n="hiddenVal">ukryty</span></div>
       <div class="list-item"><span data-i18n="profileVisibility">Widoczność profilu</span> <span style="color:var(--forest-dark); font-weight:700;" data-i18n="visibilityVal">tylko po zgodzie</span></div>
+      <div class="list-item" style="cursor:pointer;" onclick="openChangePassword()">
+        <span data-i18n="changePasswordLabel">Zmień hasło</span>
+        <span style="color:var(--lake); font-weight:700;">›</span>
+      </div>
 
       <div class="section-label" style="margin-top:22px;" data-i18n="supportTitle">Wsparcie aplikacji</div>
       <div style="background:var(--card); border:1px solid var(--line); border-radius:14px; padding:16px;">
@@ -514,6 +535,16 @@ const SUPABASE_URL = "https://jfbydwcwxiqhmqpkotld.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpmYnlkd2N3eGlxaG1xcGtvdGxkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQyOTYzNzMsImV4cCI6MjA5OTg3MjM3M30.r37mkZltQVCWqn7BsFF1KrbNSa6P8Lkp0vUNyHds9Tc";
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+// Gdy ktoś kliknie link resetujący hasło z maila, Supabase wykrywa to
+// w URL-u i zamiast normalnego logowania wysyła zdarzenie PASSWORD_RECOVERY.
+sb.auth.onAuthStateChange((event) => {
+  if(event === 'PASSWORD_RECOVERY'){
+    document.getElementById('auth-screen').style.display = 'none';
+    document.querySelectorAll('.app-ui').forEach(el => el.style.display = 'none');
+    document.getElementById('recovery-screen').style.display = 'block';
+  }
+});
+
 const ICONS = { gory:"🏔️", rower:"🚴", motocykl:"🏍️", woda:"🚤", kawa:"☕", basen:"🏊", zakupy:"🛍️", wyjazd:"🚗", inne:"📌" };
 
 let session = null;
@@ -547,6 +578,11 @@ const translations = {
     sentRequests:"Twoje zgłoszenia do innych",
     privacySettings:"Ustawienia prywatności", phoneLabel:"Numer telefonu", hiddenVal:"ukryty",
     profileVisibility:"Widoczność profilu", visibilityVal:"tylko po zgodzie",
+    changePasswordLabel:"Zmień hasło",
+    cpTitle:"Zmień hasło", cpNewLabel:"Nowe hasło", cpConfirmLabel:"Powtórz nowe hasło",
+    cpSaveBtn:"Zapisz nowe hasło", cpTooShort:"Hasło musi mieć min. 6 znaków.",
+    cpMismatch:"Hasła nie są takie same.", cpFailed:"Nie udało się zmienić hasła:",
+    cpDoneTitle:"Hasło zmienione ✅", cpDoneBody:"Od teraz logujesz się nowym hasłem.",
     supportTitle:"Wsparcie aplikacji",
     supportText:"Nasza aplikacja jest dla każdego. Będziemy wdzięczni za każdą wpłatę na jej dalszy rozwój.",
     supportBlikLbl:"BLIK na telefon", copyBlikBtn:"📋 Kopiuj numer BLIK", copiedBtn:"✅ Skopiowano!",
@@ -590,6 +626,11 @@ const translations = {
     sentRequests:"Your requests to others",
     privacySettings:"Privacy settings", phoneLabel:"Phone number", hiddenVal:"hidden",
     profileVisibility:"Profile visibility", visibilityVal:"only after consent",
+    changePasswordLabel:"Change password",
+    cpTitle:"Change password", cpNewLabel:"New password", cpConfirmLabel:"Confirm new password",
+    cpSaveBtn:"Save new password", cpTooShort:"Password must be at least 6 characters.",
+    cpMismatch:"Passwords don't match.", cpFailed:"Couldn't change password:",
+    cpDoneTitle:"Password changed ✅", cpDoneBody:"You'll now sign in with your new password.",
     supportTitle:"Support the app",
     supportText:"Our app is for everyone. We'll be grateful for any contribution towards its further development.",
     supportBlikLbl:"BLIK to phone number", copyBlikBtn:"📋 Copy BLIK number", copiedBtn:"✅ Copied!",
@@ -668,6 +709,7 @@ function initials(name){ return (name || '?').trim().charAt(0).toUpperCase(); }
 function toggleAuthMode(){
   authMode = authMode === 'register' ? 'login' : 'register';
   document.getElementById('auth-register-fields').style.display = authMode === 'register' ? 'block' : 'none';
+  document.getElementById('forgot-password-link').style.display = authMode === 'login' ? 'block' : 'none';
   const submitBtn = document.getElementById('auth-submit-btn');
   const toggleBtn = document.getElementById('auth-toggle-btn');
   if(authMode === 'register'){
@@ -684,6 +726,64 @@ function toggleAuthMode(){
 
 function showAuthError(msg){
   document.getElementById('auth-error').textContent = msg;
+}
+
+async function handleForgotPassword(){
+  const email = document.getElementById('auth-email').value.trim();
+  if(!email){ showAuthError('Podaj swój adres e-mail, żeby zresetować hasło.'); return; }
+  const { error } = await sb.auth.resetPasswordForEmail(email, {
+    redirectTo: window.location.origin + window.location.pathname
+  });
+  if(error){ showAuthError('Nie udało się wysłać linku: ' + error.message); return; }
+  showAuthError('Wysłaliśmy link do zresetowania hasła na Twój e-mail. Sprawdź skrzynkę (także SPAM) i kliknij w link.');
+}
+
+async function handlePasswordUpdate(){
+  const pw = document.getElementById('recovery-password').value;
+  const pw2 = document.getElementById('recovery-password-confirm').value;
+  const errEl = document.getElementById('recovery-error');
+  errEl.textContent = '';
+  if(!pw || pw.length < 6){ errEl.textContent = 'Hasło musi mieć min. 6 znaków.'; return; }
+  if(pw !== pw2){ errEl.textContent = 'Hasła nie są takie same.'; return; }
+  const { error } = await sb.auth.updateUser({ password: pw });
+  if(error){ errEl.textContent = 'Nie udało się ustawić hasła: ' + error.message; return; }
+  document.getElementById('recovery-screen').style.display = 'none';
+  await initApp();
+}
+
+function openChangePassword(){
+  const sheet = document.getElementById('sheet');
+  sheet.innerHTML = `
+    <div class="sheet-handle"></div>
+    <div class="close-x" onclick="closeOverlay()">✕</div>
+    <h2>${t('cpTitle')}</h2>
+    <label>${t('cpNewLabel')}</label>
+    <input id="cp-password" type="password" placeholder="min. 6 znaków">
+    <label>${t('cpConfirmLabel')}</label>
+    <input id="cp-password-confirm" type="password">
+    <button class="btn btn-primary" onclick="submitChangePassword()">${t('cpSaveBtn')}</button>
+    <div id="cp-error" style="color:var(--amber-dark); font-size:13px; margin-top:12px; text-align:center;"></div>
+  `;
+  document.getElementById('overlay').classList.add('show');
+}
+
+async function submitChangePassword(){
+  const pw = document.getElementById('cp-password').value;
+  const pw2 = document.getElementById('cp-password-confirm').value;
+  const errEl = document.getElementById('cp-error');
+  errEl.textContent = '';
+  if(!pw || pw.length < 6){ errEl.textContent = t('cpTooShort'); return; }
+  if(pw !== pw2){ errEl.textContent = t('cpMismatch'); return; }
+  const { error } = await sb.auth.updateUser({ password: pw });
+  if(error){ errEl.textContent = t('cpFailed') + ' ' + error.message; return; }
+  const sheet = document.getElementById('sheet');
+  sheet.innerHTML = `
+    <div class="sheet-handle"></div>
+    <div class="close-x" onclick="closeOverlay()">✕</div>
+    <h2>${t('cpDoneTitle')}</h2>
+    <p class="desc">${t('cpDoneBody')}</p>
+    <button class="btn btn-secondary" onclick="closeOverlay()">${t('closeBtn')}</button>
+  `;
 }
 
 async function handleSignUp(){
