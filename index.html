@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pl">
 <head>
@@ -310,6 +309,7 @@
   .accordion-chevron.open{ transform:rotate(90deg); }
   .accordion-body{ padding:0 15px 15px; font-size:13.5px; line-height:1.6; color:var(--ink); }
   .accordion-body ol{ margin:0; padding-left:20px; }
+  .accordion-body ul{ margin:0; padding-left:20px; }
   .accordion-body li{ margin-bottom:6px; }
 
   .support-line{
@@ -388,6 +388,13 @@
         <div><label>Telefon</label><input id="auth-phone" type="tel" placeholder="600 123 456"></div>
       </div>
       <div class="form-note">🔒 Numer telefonu nigdy nie jest publiczny — pokażemy go dopiero po wzajemnej akceptacji zgłoszenia.</div>
+      <label style="display:flex; align-items:flex-start; gap:8px; font-weight:500; margin-top:16px; cursor:pointer;">
+        <input id="auth-terms" type="checkbox" style="width:auto; margin-top:3px; flex:0 0 auto;">
+        <span style="font-size:13px; color:var(--ink); font-weight:500;">
+          Akceptuję <a href="regulamin.html" target="_blank" style="color:var(--forest-dark); font-weight:700;">Regulamin</a>
+          i <a href="polityka-prywatnosci.html" target="_blank" style="color:var(--forest-dark); font-weight:700;">Politykę Prywatności</a> aplikacji WspólnieGo.
+        </span>
+      </label>
     </div>
     <button class="btn btn-primary" id="auth-submit-btn" onclick="handleSignUp()">Załóż konto</button>
     <button class="btn btn-secondary" id="auth-toggle-btn" onclick="toggleAuthMode()">Mam już konto — zaloguj się</button>
@@ -484,17 +491,22 @@
         <div class="profile-sub" id="profile-sub">WspólnieGo</div>
       </div>
 
-      <div style="background:var(--card); border:1px solid var(--line); border-radius:14px; padding:16px; margin-bottom:22px;">
-        <p style="font-family:'Fraunces',serif; font-size:16px; font-weight:600; margin:0 0 8px;" data-i18n="safetyPanelTitle">🛡️ Zanim się spotkacie</p>
-        <p style="font-size:13.5px; color:var(--ink-soft); margin:0 0 10px; line-height:1.5;" data-i18n="safetyPanelIntro">Kilka prostych zasad, które warto znać przed pierwszym spotkaniem z osobą poznaną w aplikacji:</p>
-        <ul style="margin:0; padding-left:18px; font-size:13.5px; line-height:1.6; color:var(--ink);">
-          <li data-i18n="safetyTip1">Pierwsze spotkanie umów w miejscu publicznym (np. kawiarnia, parking, początek szlaku), a nie u kogoś w domu.</li>
-          <li data-i18n="safetyTip2">Powiedz bliskiej osobie, gdzie, z kim i o której się spotykasz — wyślij jej też numer telefonu drugiej osoby.</li>
-          <li data-i18n="safetyTip3">Miej naładowany telefon i, jeśli to możliwe, udostępnij swoją lokalizację bliskiej osobie na czas spotkania.</li>
-          <li data-i18n="safetyTip4">Nie przekazuj danych finansowych, haseł ani numeru dowodu osobistego przed spotkaniem ani w jego trakcie.</li>
-          <li data-i18n="safetyTip5">Ufaj swojej intuicji — jeśli coś wyda Ci się niepokojące, masz prawo zrezygnować w każdej chwili.</li>
-          <li data-i18n="safetyTip6">Jeśli ktoś zachowuje się niestosownie, zgłoś to przyciskiem „⚑ Zgłoś” — pomoże to chronić też innych.</li>
-        </ul>
+      <div class="accordion-item" style="margin-bottom:22px;">
+        <div class="accordion-header" onclick="toggleAccordion('acc-safety')">
+          <span data-i18n="safetyPanelTitle">🛡️ Zanim się spotkacie</span>
+          <span class="accordion-chevron" id="acc-safety-chevron">›</span>
+        </div>
+        <div class="accordion-body" id="acc-safety" style="display:none;">
+          <p style="font-size:13.5px; color:var(--ink-soft); margin:0 0 10px; line-height:1.5;" data-i18n="safetyPanelIntro">Kilka prostych zasad, które warto znać przed pierwszym spotkaniem z osobą poznaną w aplikacji:</p>
+          <ul style="margin:0; padding-left:18px;">
+            <li data-i18n="safetyTip1">Pierwsze spotkanie umów w miejscu publicznym (np. kawiarnia, parking, początek szlaku), a nie u kogoś w domu.</li>
+            <li data-i18n="safetyTip2">Powiedz bliskiej osobie, gdzie, z kim i o której się spotykasz — wyślij jej też numer telefonu drugiej osoby.</li>
+            <li data-i18n="safetyTip3">Miej naładowany telefon i, jeśli to możliwe, udostępnij swoją lokalizację bliskiej osobie na czas spotkania.</li>
+            <li data-i18n="safetyTip4">Nie przekazuj danych finansowych, haseł ani numeru dowodu osobistego przed spotkaniem ani w jego trakcie.</li>
+            <li data-i18n="safetyTip5">Ufaj swojej intuicji — jeśli coś wyda Ci się niepokojące, masz prawo zrezygnować w każdej chwili.</li>
+            <li data-i18n="safetyTip6">Jeśli ktoś zachowuje się niestosownie, zgłoś to przyciskiem „⚑ Zgłoś” — pomoże to chronić też innych.</li>
+          </ul>
+        </div>
       </div>
 
       <div class="section-label" data-i18n="yourOffers">Twoje propozycje</div>
@@ -568,6 +580,13 @@
       </div>
 
       <button class="btn btn-secondary" style="margin-top:22px;" onclick="handleSignOut()" data-i18n="signOutBtn">Wyloguj się</button>
+
+      <p style="text-align:center; font-size:12px; margin:22px 0 0;">
+        <a href="regulamin.html" target="_blank" style="color:var(--lake); font-weight:600; text-decoration:none;" data-i18n="footerRegulamin">Regulamin</a>
+        <span style="color:var(--line);">&nbsp;·&nbsp;</span>
+        <a href="polityka-prywatnosci.html" target="_blank" style="color:var(--lake); font-weight:600; text-decoration:none;" data-i18n="footerPolityka">Polityka Prywatności</a>
+      </p>
+      <p style="text-align:center; font-size:11px; color:var(--ink-soft); margin:8px 0 4px; text-transform:lowercase;" data-i18n="copyrightNote">© 2026 PasionLife sp. z o.o. — wszelkie prawa zastrzeżone</p>
     </section>
   </main>
 
@@ -700,6 +719,9 @@ const translations = {
     safetyTip5:"Ufaj swojej intuicji — jeśli coś wyda Ci się niepokojące, masz prawo zrezygnować w każdej chwili.",
     safetyTip6:"Jeśli ktoś zachowuje się niestosownie, zgłoś to przyciskiem „⚑ Zgłoś” — pomoże to chronić też innych.",
     safetyReminderShort:"🛡️ Przypomnienie: pierwsze spotkanie umów w miejscu publicznym i poinformuj bliską osobę o planach.",
+    copyrightNote:"© 2026 PasionLife sp. z o.o. — wszelkie prawa zastrzeżone",
+    footerRegulamin:"Regulamin",
+    footerPolityka:"Polityka Prywatności",
     installGuideTitle:"📲 Jak zainstalować aplikację",
     installIosHeader:"🍏 iPhone (Safari)",
     installIosStep1:"Otwórz WspólnieGo w przeglądarce Safari — nie w Chrome ani żadnej innej aplikacji.",
@@ -813,6 +835,9 @@ const translations = {
     safetyTip5:"Trust your instincts — if something feels off, you're allowed to back out at any time.",
     safetyTip6:"If someone behaves inappropriately, report it with the „⚑ Report” button — it helps protect other users too.",
     safetyReminderShort:"🛡️ Reminder: meet in a public place first and let someone close to you know your plans.",
+    copyrightNote:"© 2026 PasionLife sp. z o.o. — all rights reserved",
+    footerRegulamin:"Terms of Service",
+    footerPolityka:"Privacy Policy",
     installGuideTitle:"📲 How to install the app",
     installIosHeader:"🍏 iPhone (Safari)",
     installIosStep1:"Open WspólnieGo in Safari — not in Chrome or any other app.",
@@ -1089,6 +1114,10 @@ async function handleSignUp(){
   const phone = document.getElementById('auth-phone').value.trim();
   if(!email || !password || !name || !age || !phone){
     showAuthError('Uzupełnij wszystkie pola.');
+    return;
+  }
+  if(!document.getElementById('auth-terms').checked){
+    showAuthError('Musisz zaakceptować Regulamin i Politykę Prywatności, aby założyć konto.');
     return;
   }
   const { data, error } = await sb.auth.signUp({ email, password });
