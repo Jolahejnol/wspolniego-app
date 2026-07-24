@@ -748,7 +748,7 @@ const translations = {
     requestSentTitle:"Zgłoszenie wysłane ✅",
     requestSentBody:"Host zobaczy je w swoim profilu. Gdy je zaakceptuje, numer telefonu pojawi się w Twoim profilu, w sekcji „Twoje zgłoszenia do innych”.",
     closeBtn:"Zamknij", callBtn:"📞 Zadzwoń teraz",
-    noOffers:"Nie masz jeszcze żadnych propozycji.", activeLbl:"aktywna", deleteBtn:"Usuń",
+    noOffers:"Nie masz jeszcze żadnych propozycji.", activeLbl:"aktywna", expiredLbl:"termin minął", deleteBtn:"Usuń",
     confirmDelete:"Na pewno chcesz usunąć tę propozycję? Uczestnicy nie zostaną automatycznie powiadomieni.",
     deleteFailed:"Nie udało się usunąć:",
     noPending:"Brak nowych zgłoszeń.", acceptBtn:"Akceptuj", declineBtn:"Odrzuć",
@@ -864,7 +864,7 @@ const translations = {
     requestSentTitle:"Request sent ✅",
     requestSentBody:"The host will see it in their profile. Once they accept, the phone number will appear in your profile, under “Your requests to others”.",
     closeBtn:"Close", callBtn:"📞 Call now",
-    noOffers:"You don't have any listings yet.", activeLbl:"active", deleteBtn:"Delete",
+    noOffers:"You don't have any listings yet.", activeLbl:"active", expiredLbl:"date passed", deleteBtn:"Delete",
     confirmDelete:"Are you sure you want to delete this listing? Participants won't be automatically notified.",
     deleteFailed:"Couldn't delete:",
     noPending:"No new requests.", acceptBtn:"Accept", declineBtn:"Decline",
@@ -1205,10 +1205,15 @@ function setFilter(type, el){
 // ---------------- OFERTY ----------------
 
 async function loadOffers(){
+  // Publiczny feed: tylko oferty aktywne z terminem, który jeszcze nie minął.
+  // Uwaga: oferty po terminie NIE są usuwane ani zamykane — po prostu nie
+  // wchodzą do tej listy. Gospodarz nadal je widzi w swoim profilu
+  // (patrz loadMyOffers), dopóki sam ich nie usunie.
   const { data, error } = await sb
     .from('offers')
     .select('*, profiles(display_name, age, phone_verified)')
     .eq('status', 'active')
+    .gte('date_time', new Date().toISOString())
     .order('date_time', { ascending: true });
   if(error){ console.error(error); return; }
   offers = data;
@@ -1398,20 +1403,39 @@ async function deleteOffer(id){
 
 // ---------------- PROFIL: własne oferty + zgłoszenia ----------------
 
+async function loadMyOffers(){
+  // Profil Gospodarza: WSZYSTKIE jego oferty, niezależnie od terminu.
+  // Celowo bez filtra .gte('date_time', ...) i bez filtra statusu poza
+  // 'active' — dopóki Gospodarz sam nie usunie oferty (deleteOffer),
+  // ma ją widzieć tutaj, nawet jeśli już zniknęła z publicznego feedu.
+  const { data, error } = await sb
+    .from('offers')
+    .select('*')
+    .eq('host_id', session.user.id)
+    .order('date_time', { ascending: false });
+  if(error){ console.error(error); return []; }
+  return data;
+}
+
 async function renderProfile(){
   const mineContainer = document.getElementById('my-offers');
-  const mine = offers.filter(o => o.host_id === session.user.id);
+  const mine = await loadMyOffers();
+  const now = new Date();
   mineContainer.innerHTML = mine.length === 0
     ? `<div class="list-item" style="color:var(--ink-soft);">${t('noOffers')}</div>`
-    : mine.map(o => `
+    : mine.map(o => {
+      const expired = new Date(o.date_time) < now;
+      const stateLabel = expired ? t('expiredLbl') : t('activeLbl');
+      const stateColor = expired ? 'var(--ink-soft)' : 'var(--amber-dark)';
+      return `
       <div class="list-item">
         <span>${ICONS[o.activity_type] || "📌"} ${escapeHtml(o.title)}</span>
         <span>
-          <span style="color:var(--amber-dark); font-weight:700; margin-right:10px;">${t('activeLbl')}</span>
+          <span style="color:${stateColor}; font-weight:700; margin-right:10px;">${stateLabel}</span>
           <button onclick="deleteOffer('${o.id}')" class="btn-danger">${t('deleteBtn')}</button>
         </span>
       </div>
-    `).join('');
+    `; }).join('');
 
   const myOfferIds = mine.map(o => o.id).length ? mine.map(o => o.id) : ['00000000-0000-0000-0000-000000000000'];
 
