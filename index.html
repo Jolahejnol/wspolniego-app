@@ -363,11 +363,110 @@
   }
   #install-banner .ib-install{background:var(--amber); color:#2A1D06; margin-right:6px;}
   #install-banner .ib-dismiss{background:transparent; color:#D9E4DA;}
+
+  /* ================= ONBOARDING / WELCOME ================= */
+  #onboarding{
+    position:absolute; inset:0; z-index:60;
+    background:var(--paper);
+    display:flex; flex-direction:column;
+    overflow-y:auto;
+  }
+  #onboarding.hide{display:none;}
+
+  .ob-banner{
+    position:relative;
+    background:var(--forest);
+    color:#fff;
+    padding:38px 20px 34px;
+    overflow:hidden;
+    flex:0 0 auto;
+  }
+  .ob-banner .topo{height:100%;}
+  .ob-banner .lang-toggle{position:relative; z-index:1; float:right; margin-top:-4px;}
+  .ob-mark{
+    position:relative; z-index:1;
+    width:54px; height:54px; border-radius:14px;
+    background:var(--amber);
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Fraunces',serif; font-size:24px; font-weight:700; color:#2A1D06;
+    margin-bottom:16px;
+  }
+  .ob-brand{
+    position:relative; z-index:1;
+    font-family:'Fraunces',serif; font-size:30px; font-weight:600; line-height:1.15;
+  }
+  .ob-brand span{color:var(--amber);}
+  .ob-tagline{
+    position:relative; z-index:1;
+    font-size:14.5px; color:#D9E4DA; margin-top:8px; font-weight:500; max-width:280px;
+  }
+
+  .ob-body{padding:24px 20px 28px; flex:1;}
+  .ob-lede{
+    font-family:'Fraunces',serif; font-size:19px; font-weight:400;
+    line-height:1.4; color:var(--ink); margin:0 0 10px;
+  }
+
+  .ob-story{
+    background:var(--card); border:1px solid var(--line); border-radius:16px;
+    padding:16px 17px; margin-bottom:22px;
+  }
+  .ob-story p{
+    font-size:13.5px; line-height:1.65; color:var(--ink); margin:0 0 10px;
+  }
+  .ob-story p:last-child{margin-bottom:0;}
+
+  .ob-photo{
+    border-radius:18px; overflow:hidden; margin-bottom:22px;
+    box-shadow:0 10px 24px -12px rgba(31,43,34,0.35);
+  }
+  .ob-photo img{width:100%; height:180px; object-fit:cover; display:block;}
+
+  .ob-legal{font-size:11.5px; color:var(--ink-soft); text-align:center; margin-top:14px; line-height:1.5;}
+  .ob-legal a{color:var(--lake); font-weight:600; text-decoration:none;}
 </style>
 </head>
 <body>
 
 <div class="phone">
+  <!-- EKRAN POWITALNY / WPROWADZENIE -->
+  <div id="onboarding" class="hide">
+    <div class="ob-banner">
+      <svg class="topo" viewBox="0 0 400 150" preserveAspectRatio="none">
+        <path d="M0,90 C60,60 100,110 160,80 C220,50 260,100 320,70 C360,50 380,65 400,55" stroke="white" stroke-width="2" fill="none"/>
+        <path d="M0,110 C60,85 100,130 160,105 C220,80 260,120 320,95 C360,80 380,90 400,82" stroke="white" stroke-width="2" fill="none"/>
+        <path d="M0,130 C60,110 100,145 160,125 C220,105 260,140 320,118 C360,105 380,112 400,108" stroke="white" stroke-width="2" fill="none"/>
+      </svg>
+      <div class="lang-toggle">
+        <button id="ob-lang-pl" onclick="setLang('pl')">PL</button>
+        <button id="ob-lang-en" onclick="setLang('en')">EN</button>
+      </div>
+      <div class="ob-mark">W</div>
+      <div class="ob-brand">Wspólnie<span>Go</span></div>
+      <div class="ob-tagline" data-i18n="obTagline">Efektywnie spędzony czas</div>
+    </div>
+
+    <div class="ob-body">
+      <p class="ob-lede" data-i18n="obLede">Aplikacja, dzięki której możesz poznać osoby, które tak jak Ty mają ochotę spędzić czas, lub Ty możesz zaproponować odpowiednie spędzenie czasu osobie lub grupie osób.</p>
+
+      <div class="ob-story">
+        <p data-i18n="obStory1">🧭 Aplikacja WspólnieGo to aplikacja do wspólnego spędzania czasu - np. masz ochotę pójść jutro w góry 🏔️, a nie bardzo masz z kim, masz ochotę popływać łódką 🚤, a nie masz patentu, albo masz patent, a nie masz za bardzo z kim popływać, wybrać się w podróż na drugi koniec Polski, a nie bardzo masz z kim lub nie masz pomysłu na wyjazd 🚗, a może jeździsz motocyklem 🏍️ i chcesz wybrać się z kimś jeszcze.</p>
+        <p>🤝 Wspólnie możecie decydować o przebiegu spotkania, lub sam możesz zaproponować, jak go spędzicie.</p>
+      
+      </div>
+
+      <div class="ob-photo">
+        <img src="https://github.com/Jolahejnol/wspolniego-app/blob/ecc8da8c89caafbf5164dffa0265a399d42cce84/rowerem.jpg" alt="Grupa znajomych spędzająca czas razem">
+      </div>
+
+      <button class="btn btn-primary" data-i18n="obStartBtn" onclick="finishOnboarding()">Rozpocznij</button>
+      <p class="ob-legal">
+        <span data-i18n="obLegalAccept">Kontynuując, akceptujesz</span> <a href="regulamin.html" target="_blank" data-i18n="obLegalRegulamin">Regulamin</a> <span data-i18n="obLegalService">serwisu.</span><br>
+        <span data-i18n="obLegalOwner">Własność: PasionLife sp. z o.o.</span>
+      </p>
+    </div>
+  </div>
+
   <div id="auth-screen" style="position:absolute; inset:0; background:var(--paper); z-index:50; padding:36px 20px 20px; overflow-y:auto;">
     <div style="text-align:center; margin-bottom:26px;">
       <div style="font-family:'Fraunces',serif; font-size:26px; font-weight:600; color:var(--forest-dark);">Wspólnie<span style="color:var(--amber);">Go</span></div>
@@ -757,7 +856,17 @@ const translations = {
     removeFailed:"Nie udało się usunąć uczestnika:",
     noSent:"Nie wysłałaś/eś jeszcze żadnych zgłoszeń.",
     statusPending:"oczekuje", statusAccepted:"zaakceptowano", statusDeclined:"odrzucono", statusCancelled:"anulowano",
-    yearsLbl:"lat", noDescText:"Brak dodatkowego opisu."
+    yearsLbl:"lat", noDescText:"Brak dodatkowego opisu.",
+    obTagline:"Efektywnie spędzony czas",
+    obLede:"Aplikacja, dzięki której możesz poznać osoby, które tak jak Ty mają ochotę spędzić czas, lub Ty możesz zaproponować odpowiednie spędzenie czasu osobie lub grupie osób.",
+    obStory1:"🧭 Aplikacja WspólnieGo to aplikacja do wspólnego spędzania czasu – np. masz ochotę pójść jutro w góry, a nie bardzo masz z kim 🏔️, masz ochotę popływać łódką, a nie masz patentu, albo masz patent, a nie masz za bardzo z kim popływać 🚤, wybrać się w podróż na drugi koniec Polski, a nie bardzo masz z kim lub nie masz pomysłu na wyjazd 🚗, a może jeździsz motocyklem i chcesz wybrać się z kimś jeszcze 🏍️.",
+    obStory2:"🤝 Wspólnie możecie decydować o przebiegu spotkania, lub sam możesz zaproponować, jak go spędzicie — decydujecie o formie aktywności oraz miejscu i czasie.",
+    obStory3:"🚴‍♀️🏐🚶 Może w trzech na rowerach, może w grupie grając w piłkę, a może we dwoje na spacerze.",
+    obStartBtn:"Rozpocznij",
+    obLegalAccept:"Kontynuując, akceptujesz",
+    obLegalRegulamin:"Regulamin",
+    obLegalService:"serwisu.",
+    obLegalOwner:"Własność: PasionLife sp. z o.o."
   },
   en:{
     tagline:"Find someone to join you for an outing, trip or activity",
@@ -873,7 +982,17 @@ const translations = {
     removeFailed:"Couldn't remove participant:",
     noSent:"You haven't sent any requests yet.",
     statusPending:"pending", statusAccepted:"accepted", statusDeclined:"declined", statusCancelled:"cancelled",
-    yearsLbl:"y/o", noDescText:"No additional description."
+    yearsLbl:"y/o", noDescText:"No additional description.",
+    obTagline:"Time well spent",
+    obLede:"An app that lets you meet people who, just like you, feel like spending time together — or you can suggest the perfect way to spend time with a person or a group.",
+    obStory1:"🧭 WspólnieGo is an app for spending time together — say you feel like going hiking tomorrow but don't really have anyone to go with 🏔️, you'd like to go boating but don't have a licence, or you have one but no one to sail with 🚤, you want to travel across the country but have no company or no idea for a trip 🚗, or maybe you ride a motorcycle and want someone to join you 🏍️.",
+    obStory2:"🤝 Together you can decide how the meetup will go, or you can suggest it yourself — you decide on the activity, the place and the time.",
+    obStory3:"🚴‍♀️🏐🚶 Maybe the three of you on bikes, maybe a group playing football, or maybe just the two of you on a walk.",
+    obStartBtn:"Get started",
+    obLegalAccept:"By continuing, you accept the",
+    obLegalRegulamin:"Terms of Service",
+    obLegalService:"of the app.",
+    obLegalOwner:"Owned by: PasionLife sp. z o.o."
   }
 };
 
@@ -887,6 +1006,10 @@ function setLang(lang){
   const enBtn = document.getElementById('lang-en');
   if(plBtn) plBtn.classList.toggle('on', lang === 'pl');
   if(enBtn) enBtn.classList.toggle('on', lang === 'en');
+  const obPlBtn = document.getElementById('ob-lang-pl');
+  const obEnBtn = document.getElementById('ob-lang-en');
+  if(obPlBtn) obPlBtn.classList.toggle('on', lang === 'pl');
+  if(obEnBtn) obEnBtn.classList.toggle('on', lang === 'en');
   applyStaticTranslations();
   renderFeed();
   updatePhoneVerifyStatus();
@@ -1151,10 +1274,19 @@ async function handleSignOut(){
   location.reload();
 }
 
+function finishOnboarding(){
+  localStorage.setItem('wspolniego_seen_onboarding', '1');
+  const ob = document.getElementById('onboarding');
+  if(ob) ob.classList.add('hide');
+}
+
 async function initApp(){
   const { data: { session: s } } = await sb.auth.getSession();
   session = s;
   if(!session){
+    const seenOnboarding = localStorage.getItem('wspolniego_seen_onboarding') === '1';
+    const ob = document.getElementById('onboarding');
+    if(ob) ob.classList.toggle('hide', seenOnboarding);
     document.getElementById('auth-screen').style.display = 'block';
     document.querySelectorAll('.app-ui').forEach(el => el.style.display = 'none');
     return;
@@ -1169,6 +1301,8 @@ async function initApp(){
     showAuthError(t('blockedAccountMsg'));
     return;
   }
+  const obDone = document.getElementById('onboarding');
+  if(obDone) obDone.classList.add('hide');
   document.getElementById('auth-screen').style.display = 'none';
   document.querySelectorAll('.app-ui').forEach(el => el.style.display = '');
   document.getElementById('profile-avatar').textContent = initials(myProfile.display_name);
