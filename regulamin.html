@@ -2,141 +2,1855 @@
 <html lang="pl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Regulamin — WspólnieGo</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>WspólnieGo — znajdź towarzystwo</title>
+
+<!-- PWA: manifest + theme -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#3A5A40">
+<meta name="background-color" content="#EFF2EA">
+
+<!-- PWA: iOS support (Apple nie czyta manifest.json w pełni) -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="WspólnieGo">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+
+<!-- Ikony -->
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root{
-    --paper:#EFF2EA; --card:#FFFFFF; --ink:#1F2B22; --ink-soft:#5C6A5F;
-    --forest:#3A5A40; --forest-dark:#274430; --amber:#D98E2B; --line:#DDE3D5;
+    --paper:#EFF2EA;
+    --card:#FFFFFF;
+    --ink:#1F2B22;
+    --ink-soft:#5C6A5F;
+    --forest:#3A5A40;
+    --forest-dark:#274430;
+    --amber:#D98E2B;
+    --amber-dark:#B8721B;
+    --lake:#4C6B8A;
+    --line:#DDE3D5;
+    --radius:18px;
   }
   *{box-sizing:border-box;}
   body{
-    margin:0; font-family:'Inter',sans-serif; background:var(--paper); color:var(--ink);
-    display:flex; justify-content:center; padding:0 16px 60px;
+    margin:0;
+    font-family:'Inter',sans-serif;
+    background:linear-gradient(180deg,#E4E9DD 0%,#EFF2EA 220px);
+    color:var(--ink);
+    display:flex;
+    justify-content:center;
+    padding:28px 12px;
+    min-height:100vh;
   }
-  .wrap{ width:100%; max-width:680px; }
+  .phone{
+    width:100%;
+    max-width:400px;
+    background:var(--paper);
+    border-radius:34px;
+    box-shadow:0 30px 60px -20px rgba(31,43,34,0.35), 0 0 0 10px #1b241c;
+    overflow:hidden;
+    position:relative;
+    min-height:780px;
+    display:flex;
+    flex-direction:column;
+  }
+  /* ---- topographic signature motif ---- */
+  .topo{
+    position:absolute; top:0; left:0; width:100%; height:150px;
+    opacity:0.16; pointer-events:none;
+  }
   header{
-    background:var(--forest); color:#fff; padding:22px 24px 26px; margin:0 -16px 28px;
-    border-radius:0 0 20px 20px;
+    position:relative;
+    background:var(--forest);
+    color:#fff;
+    padding:22px 20px 30px;
+    overflow:hidden;
   }
-  header .brand{ font-family:'Fraunces',serif; font-size:22px; font-weight:600; }
-  header .brand span{ color:var(--amber); }
-  header a{ color:#D9E4DA; font-size:13px; text-decoration:none; display:inline-block; margin-top:6px; }
-  header a:hover{ text-decoration:underline; }
-  h1{ font-family:'Fraunces',serif; font-size:24px; font-weight:700; margin:0 0 4px; }
-  .subtitle{ font-size:13.5px; color:var(--ink-soft); margin-bottom:28px; }
-  h2{ font-family:'Fraunces',serif; font-size:17px; font-weight:600; color:var(--forest-dark);
-      margin:30px 0 10px; padding-bottom:6px; border-bottom:1px solid var(--line); }
-  p, li{ font-size:14.5px; line-height:1.65; }
-  ul, ol{ padding-left:22px; margin:0 0 10px; }
-  li{ margin-bottom:8px; }
-  ol[type="a"] li{ margin-bottom:6px; }
-  .card{ background:var(--card); border:1px solid var(--line); border-radius:16px; padding:20px 22px; margin-bottom:16px; }
-  footer{ text-align:center; font-size:11.5px; color:var(--ink-soft); margin-top:30px; text-transform:lowercase; }
+  header .top-row{
+    position:relative; z-index:1;
+    display:flex; justify-content:space-between; align-items:flex-start;
+  }
+  header .brand{
+    font-family:'Fraunces',serif;
+    font-size:26px;
+    font-weight:600;
+    letter-spacing:0.2px;
+    position:relative;
+    z-index:1;
+  }
+  header .brand span{color:var(--amber);}
+  header .tagline{
+    position:relative; z-index:1;
+    font-size:13.5px;
+    color:#D9E4DA;
+    margin-top:4px;
+    font-weight:500;
+  }
+  .lang-toggle{
+    display:flex; background:rgba(255,255,255,0.15); border-radius:999px; padding:3px;
+    flex:0 0 auto; margin-top:2px; position:relative; z-index:1;
+  }
+  .lang-toggle button{
+    border:none; background:transparent; color:#D9E4DA; font-size:11.5px; font-weight:700;
+    font-family:'JetBrains Mono',monospace; padding:5px 10px; border-radius:999px; cursor:pointer;
+  }
+  .lang-toggle button.on{background:var(--amber); color:#2A1D06;}
+  main{
+    flex:1;
+    overflow-y:auto;
+    padding:18px 16px 90px;
+  }
+  section{display:none;}
+  section.active{display:block;}
+
+  /* ---- search bar ---- */
+  .searchbar{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:10px 14px;
+    font-size:15px;
+    color:var(--ink);
+    margin-bottom:16px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .searchbar input{
+    border:none; outline:none; flex:1; font-size:15px; font-family:'Inter',sans-serif;
+    background:transparent; color:var(--ink); padding:2px 0;
+  }
+  .searchbar input::placeholder{color:var(--ink-soft);}
+  .filters{
+    display:flex; gap:8px; overflow-x:auto; margin-bottom:18px; padding-bottom:4px;
+  }
+  .filters::-webkit-scrollbar{display:none;}
+  .chip{
+    flex:0 0 auto;
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:999px;
+    padding:8px 14px;
+    font-size:13px;
+    font-weight:600;
+    color:var(--forest-dark);
+    white-space:nowrap;
+    cursor:pointer;
+  }
+  .chip.on{background:var(--forest); color:#fff; border-color:var(--forest);}
+
+  .section-label{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    margin:4px 0 10px;
+    font-weight:600;
+  }
+
+  /* ---- activity card ---- */
+  .card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:16px;
+    margin-bottom:14px;
+    cursor:pointer;
+    transition:transform .15s ease, box-shadow .15s ease;
+    position:relative;
+  }
+  .card:active{transform:scale(0.98);}
+  .card-top{display:flex; justify-content:space-between; align-items:flex-start; gap:10px;}
+  .card-icon{
+    width:42px; height:42px; border-radius:12px;
+    background:#EAF1EA; display:flex; align-items:center; justify-content:center;
+    font-size:20px; flex:0 0 42px;
+  }
+  .card-title{
+    font-family:'Fraunces',serif;
+    font-size:17.5px;
+    font-weight:600;
+    line-height:1.25;
+    margin:0 0 3px;
+  }
+  .card-meta{
+    font-size:13px; color:var(--ink-soft); font-weight:500;
+  }
+  .card-when{
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;
+    background:#F4EFE1;
+    color:var(--amber-dark);
+    border-radius:8px;
+    padding:4px 8px;
+    font-weight:600;
+    white-space:nowrap;
+  }
+  .card-tags{margin-top:12px; display:flex; gap:6px; flex-wrap:wrap;}
+  .tag{
+    font-size:11.5px; font-weight:600;
+    background:#EEF2F6; color:var(--lake);
+    padding:4px 9px; border-radius:999px;
+  }
+  .card-host{
+    margin-top:12px; padding-top:12px; border-top:1px dashed var(--line);
+    display:flex; align-items:center; gap:8px; font-size:13px; color:var(--ink-soft);
+  }
+  .avatar{
+    width:26px; height:26px; border-radius:50%;
+    background:var(--forest); color:#fff; font-size:11px; font-weight:700;
+    display:flex; align-items:center; justify-content:center; flex:0 0 26px;
+  }
+
+  /* ---- detail overlay ---- */
+  .overlay{
+    position:absolute; inset:0; background:rgba(31,43,34,0.45);
+    display:none; align-items:flex-end; z-index:20;
+  }
+  .overlay.show{display:flex;}
+  .sheet{
+    background:var(--paper);
+    width:100%;
+    max-height:88%;
+    border-radius:24px 24px 0 0;
+    padding:20px 20px 24px;
+    overflow-y:auto;
+    animation:up .25s ease;
+  }
+  @keyframes up{from{transform:translateY(30px); opacity:0;} to{transform:translateY(0); opacity:1;}}
+  .sheet-handle{width:38px; height:4px; background:var(--line); border-radius:4px; margin:0 auto 16px;}
+  .close-x{
+    position:absolute; top:16px; right:16px; background:var(--card); border:1px solid var(--line);
+    width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    font-size:16px; cursor:pointer; color:var(--ink-soft);
+  }
+  .sheet h2{font-family:'Fraunces',serif; font-size:22px; margin:0 0 6px; padding-right:36px;}
+  .sheet .desc{font-size:14.5px; line-height:1.6; color:var(--ink); margin:14px 0;}
+  .info-row{display:flex; gap:10px; align-items:center; font-size:14px; color:var(--ink-soft); margin-bottom:8px;}
+  .info-row b{color:var(--ink); font-weight:600;}
+
+  .btn{
+    width:100%; border:none; border-radius:14px; padding:15px;
+    font-size:16px; font-weight:700; font-family:'Inter',sans-serif;
+    cursor:pointer; margin-top:14px;
+  }
+  .btn-primary{background:var(--amber); color:#2A1D06;}
+  .btn-primary:active{background:var(--amber-dark);}
+  .btn-secondary{background:transparent; color:var(--forest-dark); border:1.5px solid var(--forest-dark);}
+  .btn-call{background:var(--forest); color:#fff; text-decoration:none; display:block; text-align:center;}
+  .btn-call:active{background:var(--forest-dark);}
+  .btn-danger{background:none; border:none; color:#B3261E; font-weight:700; cursor:pointer; font-size:13px;}
+  .participant-row{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:10px 0; border-bottom:1px dashed var(--line); font-size:14px;
+  }
+  .participant-row:last-child{border-bottom:none;}
+
+  .reveal-box{
+    margin-top:14px; background:#EAF1EA; border-radius:14px; padding:16px; text-align:center;
+  }
+  .reveal-box .phone-num{
+    font-family:'JetBrains Mono',monospace; font-size:22px; font-weight:700; color:var(--forest-dark);
+    letter-spacing:0.5px; margin:6px 0;
+  }
+  .reveal-note{font-size:12.5px; color:var(--ink-soft); margin-top:4px;}
+
+  /* ---- add form ---- */
+  label{display:block; font-size:13px; font-weight:700; color:var(--forest-dark); margin:16px 0 6px;}
+  label:first-child{margin-top:0;}
+  input, select, textarea{
+    width:100%; border:1.5px solid var(--line); border-radius:12px;
+    padding:12px 13px; font-size:15px; font-family:'Inter',sans-serif;
+    background:var(--card); color:var(--ink);
+  }
+  input:focus, select:focus, textarea:focus{outline:2.5px solid var(--forest); outline-offset:1px;}
+  textarea{resize:vertical; min-height:70px;}
+  .row2{display:flex; gap:10px;}
+  .row2 > div{flex:1;}
+  .form-note{
+    background:#EEF2F6; border-radius:12px; padding:12px 14px; font-size:12.5px;
+    color:var(--lake); margin-top:18px; line-height:1.5;
+  }
+
+  /* ---- profile ---- */
+  .profile-head{text-align:center; padding:10px 0 4px;}
+  .profile-avatar{
+    width:76px; height:76px; border-radius:50%; background:var(--forest); color:#fff;
+    display:flex; align-items:center; justify-content:center; font-family:'Fraunces',serif;
+    font-size:28px; font-weight:600; margin:0 auto 10px;
+  }
+  .profile-name{font-family:'Fraunces',serif; font-size:20px; font-weight:600;}
+  .profile-sub{font-size:13px; color:var(--ink-soft); margin-top:2px;}
+  .stat-row{display:flex; gap:10px; margin:20px 0;}
+  .stat{flex:1; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px; text-align:center;}
+  .stat b{display:block; font-family:'Fraunces',serif; font-size:20px; color:var(--forest-dark);}
+  .stat span{font-size:11.5px; color:var(--ink-soft);}
+  .list-item{
+    background:var(--card); border:1px solid var(--line); border-radius:14px;
+    padding:13px 15px; margin-bottom:10px; font-size:14px; display:flex; justify-content:space-between; align-items:center;
+  }
+
+  .accordion-item{
+    background:var(--card); border:1px solid var(--line); border-radius:14px;
+    margin-bottom:10px; overflow:hidden;
+  }
+  .accordion-header{
+    padding:13px 15px; font-size:14px; font-weight:700; color:var(--forest-dark);
+    display:flex; justify-content:space-between; align-items:center; cursor:pointer;
+  }
+  .accordion-chevron{ transition:transform .2s ease; color:var(--ink-soft); font-weight:700; }
+  .accordion-chevron.open{ transform:rotate(90deg); }
+  .accordion-body{ padding:0 15px 15px; font-size:13.5px; line-height:1.6; color:var(--ink); }
+  .accordion-body ol{ margin:0; padding-left:20px; }
+  .accordion-body ul{ margin:0; padding-left:20px; }
+  .accordion-body li{ margin-bottom:6px; }
+
+  .support-line{
+    background:#F4EFE1; border-radius:12px; padding:12px 14px; margin:12px 0;
+  }
+  .support-line .lbl{font-size:11.5px; color:var(--amber-dark); font-weight:700; text-transform:uppercase; letter-spacing:0.04em;}
+  .support-line .val{font-family:'JetBrains Mono',monospace; font-size:16px; font-weight:700; color:var(--ink); margin-top:3px;}
+
+  .empty{
+    text-align:center; padding:50px 20px; color:var(--ink-soft);
+  }
+  .empty .big{font-family:'Fraunces',serif; font-size:19px; color:var(--ink); margin-bottom:6px;}
+
+  /* ---- bottom nav ---- */
+  nav{
+    position:absolute; bottom:0; left:0; right:0;
+    background:var(--card); border-top:1px solid var(--line);
+    display:flex; padding:10px 8px 14px;
+    z-index:5;
+  }
+  nav button{
+    flex:1; background:none; border:none; display:flex; flex-direction:column;
+    align-items:center; gap:4px; font-family:'Inter',sans-serif; font-size:11px;
+    font-weight:600; color:var(--ink-soft); cursor:pointer; padding:6px 0;
+  }
+  nav button .ic{font-size:20px;}
+  nav button.active{color:var(--forest-dark);}
+  nav .fab{
+    background:var(--forest); color:#fff; border-radius:16px; margin-top:-22px;
+    width:52px; height:52px; align-self:center; flex:0 0 52px; justify-content:center;
+    box-shadow:0 8px 18px rgba(58,90,64,0.4);
+  }
+  nav .fab .ic{font-size:24px;}
+
+  /* ---- PWA install banner ---- */
+  #install-banner{
+    display:none;
+    position:absolute; left:12px; right:12px; bottom:96px;
+    background:var(--forest-dark); color:#fff;
+    border-radius:16px; padding:12px 14px;
+    align-items:center; gap:10px;
+    box-shadow:0 10px 24px rgba(0,0,0,0.25);
+    z-index:15;
+  }
+  #install-banner .ib-icon{font-size:22px;}
+  #install-banner .ib-text{flex:1; font-size:13px; line-height:1.35;}
+  #install-banner .ib-text b{display:block; font-size:14px; font-family:'Fraunces',serif;}
+  #install-banner button{
+    border:none; border-radius:10px; font-weight:700; font-family:'Inter',sans-serif;
+    padding:8px 12px; font-size:12.5px; cursor:pointer;
+  }
+  #install-banner .ib-install{background:var(--amber); color:#2A1D06; margin-right:6px;}
+  #install-banner .ib-dismiss{background:transparent; color:#D9E4DA;}
+
+  /* ================= ONBOARDING / WELCOME ================= */
+  #onboarding{
+    position:absolute; inset:0; z-index:60;
+    background:var(--paper);
+    display:flex; flex-direction:column;
+    overflow-y:auto;
+  }
+  #onboarding.hide{display:none;}
+
+  .ob-banner{
+    position:relative;
+    background:var(--forest);
+    color:#fff;
+    padding:38px 20px 34px;
+    overflow:hidden;
+    flex:0 0 auto;
+  }
+  .ob-banner .topo{height:100%;}
+  .ob-banner .lang-toggle{position:relative; z-index:1; float:right; margin-top:-4px;}
+  .ob-mark{
+    position:relative; z-index:1;
+    width:54px; height:54px; border-radius:14px;
+    background:var(--amber);
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Fraunces',serif; font-size:24px; font-weight:700; color:#2A1D06;
+    margin-bottom:16px;
+  }
+  .ob-brand{
+    position:relative; z-index:1;
+    font-family:'Fraunces',serif; font-size:30px; font-weight:600; line-height:1.15;
+  }
+  .ob-brand span{color:var(--amber);}
+  .ob-tagline{
+    position:relative; z-index:1;
+    font-size:14.5px; color:#D9E4DA; margin-top:8px; font-weight:500; max-width:280px;
+  }
+
+  .ob-body{padding:24px 20px 28px; flex:1;}
+  .ob-lede{
+    font-family:'Fraunces',serif; font-size:19px; font-weight:400;
+    line-height:1.4; color:var(--ink); margin:0 0 10px;
+  }
+
+  .ob-story{
+    background:var(--card); border:1px solid var(--line); border-radius:16px;
+    padding:16px 17px; margin-bottom:22px;
+  }
+  .ob-story p{
+    font-size:13.5px; line-height:1.65; color:var(--ink); margin:0 0 10px;
+  }
+  .ob-story p:last-child{margin-bottom:0;}
+
+  .ob-photo{
+    border-radius:18px; overflow:hidden; margin-bottom:22px;
+    box-shadow:0 10px 24px -12px rgba(31,43,34,0.35);
+  }
+  .ob-photo img{width:100%; height:180px; object-fit:cover; display:block;}
+
+  .ob-legal{font-size:11.5px; color:var(--ink-soft); text-align:center; margin-top:14px; line-height:1.5;}
+  .ob-legal a{color:var(--lake); font-weight:600; text-decoration:none;}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <div class="brand">Wspólnie<span>Go</span></div>
-    <a href="./">← Wróć do aplikacji</a>
-  </header>
 
-  <div class="card">
-    <h1>Regulamin aplikacji „WspólnieGo”</h1>
-    <div class="subtitle">z dnia 21 lipca 2026 r.</div>
+<div class="phone">
+  <!-- EKRAN POWITALNY / WPROWADZENIE -->
+  <div id="onboarding" class="hide">
+    <div class="ob-banner">
+      <svg class="topo" viewBox="0 0 400 150" preserveAspectRatio="none">
+        <path d="M0,90 C60,60 100,110 160,80 C220,50 260,100 320,70 C360,50 380,65 400,55" stroke="white" stroke-width="2" fill="none"/>
+        <path d="M0,110 C60,85 100,130 160,105 C220,80 260,120 320,95 C360,80 380,90 400,82" stroke="white" stroke-width="2" fill="none"/>
+        <path d="M0,130 C60,110 100,145 160,125 C220,105 260,140 320,118 C360,105 380,112 400,108" stroke="white" stroke-width="2" fill="none"/>
+      </svg>
+      <div class="lang-toggle">
+        <button id="ob-lang-pl" onclick="setLang('pl')">PL</button>
+        <button id="ob-lang-en" onclick="setLang('en')">EN</button>
+      </div>
+      <div class="ob-mark">W</div>
+      <div class="ob-brand">Wspólnie<span>Go</span></div>
+      <div class="ob-tagline" data-i18n="obTagline">Efektywnie spędzony czas</div>
+    </div>
 
-    <h2>§ 1. Postanowienia ogólne</h2>
-    <ul>
-      <li>Niniejszy Regulamin (dalej: „Regulamin") określa zasady i warunki korzystania z aplikacji mobilnej WspólnieGo (dalej: „Aplikacja").</li>
-      <li>Właścicielem, administratorem i usługodawcą Aplikacji jest PasionLife spółka z ograniczoną odpowiedzialnością z siedzibą przy ul. Pod Dębiną 8, 43-430 Pierściec, wpisana do rejestru przedsiębiorców Krajowego Rejestru Sądowego pod numerem KRS: 0000694626, NIP: 5482686362, REGON: 368247741, adres e-mail do kontaktu: kontakt@wspolniego.pl (dalej: „Operator").</li>
-      <li>Aplikacja umożliwia Użytkownikom publikowanie oraz przeglądanie propozycji wspólnych, rzeczywistych spotkań i aktywności realizowanych w małych grupach, w szczególności: wędrówek pieszych i górskich, wycieczek rowerowych, wypraw motocyklowych, rejsów łodzią lub kajakiem, spotkań przy kawie, pływania, wspólnych zakupów oraz wspólnych wyjazdów międzymiastowych.</li>
-      <li>Aplikacja skierowana jest do szerokiego grona osób pełnoletnich, w tym osób starszych, dlatego jej interfejs został zaprojektowany z naciskiem na czytelność i prostotę obsługi (m.in. powiększona czcionka, duże, łatwe do trafienia elementy dotykowe).</li>
-      <li>Podstawową zasadą działania Aplikacji jest ochrona prywatności Użytkowników: dane kontaktowe (numer telefonu) nie są nigdy publicznie widoczne i zostają ujawnione wyłącznie w sposób opisany w § 5.</li>
-      <li>Regulamin jest udostępniany nieodpłatnie w Aplikacji oraz na stronie internetowej Operatora, w formie umożliwiającej jego pobranie, utrwalenie i wydrukowanie.</li>
-    </ul>
+    <div class="ob-body">
+      <p class="ob-lede" data-i18n="obLede">Aplikacja, dzięki której możesz poznać osoby, które tak jak Ty chcą aktywnie spędzać czas. Możesz dołączyć do innych lub sam zaproponować sposób jego spędzenia, jednej osobie albo całej grupie.</p>
 
-    <h2>§ 2. Definicje</h2>
-    <ul>
-      <li><b>Użytkownik</b> — osoba fizyczna posiadająca pełną zdolność do czynności prawnych, korzystająca z Aplikacji.</li>
-      <li><b>Oferta / Propozycja</b> — ogłoszenie publikowane przez Użytkownika, dotyczące wspólnej aktywności, zawierające co najmniej: rodzaj aktywności, tytuł, termin, miejsce startu oraz liczbę i charakterystykę poszukiwanych osób.</li>
-      <li><b>Gospodarz</b> — Użytkownik publikujący Ofertę.</li>
-      <li><b>Uczestnik</b> — Użytkownik zgłaszający za pośrednictwem Aplikacji chęć dołączenia do Oferty.</li>
-      <li><b>Ujawnienie kontaktu</b> — udostępnienie numeru telefonu pomiędzy Gospodarzem a Uczestnikiem, następujące wyłącznie po wyrażeniu obopólnej zgody, zgodnie z § 5.</li>
-    </ul>
+      <div class="ob-story">
+        <p data-i18n="obStory1">Masz ochotę jutro wybrać się w góry 🏔️, ale nie masz z kim? Chcesz popływać łódką 🚤, lecz nie masz patentu albo wręcz przeciwnie: masz patent, ale brakuje Ci towarzystwa? Marzy Ci się podróż na drugi koniec Polski 🚗, ale nie masz pomysłu lub osoby, z którą mógłbyś ją zrealizować? A może jeździsz motocyklem 🏍️ i chcesz ruszyć w trasę z kimś jeszcze?</p>
+        <p data-i18n="obStory2">🤝 Wspólnie możecie decydować o przebiegu spotkania albo sam możesz zaproponować, jak chcecie spędzić czas.</p>
+      
+      </div>
 
-    <h2>§ 3. Warunki korzystania z Aplikacji</h2>
-    <ul>
-      <li>Z Aplikacji może korzystać wyłącznie osoba pełnoletnia, posiadająca pełną zdolność do czynności prawnych.</li>
-      <li>Przeglądanie Ofert może być możliwe bez rejestracji; publikowanie Ofert oraz zgłaszanie chęci dołączenia wymaga założenia konta i podania danych: imienia, wieku oraz lokalizacji.</li>
-      <li>Użytkownik zobowiązany jest do podawania danych zgodnych z prawdą oraz do bieżącej ich aktualizacji.</li>
-      <li>Zabronione jest zakładanie kont w cudzym imieniu, podszywanie się pod inne osoby oraz udostępnianie swojego konta osobom trzecim.</li>
-      <li>Operator zastrzega sobie prawo do zawieszenia lub usunięcia konta Użytkownika, który narusza Regulamin, podaje nieprawdziwe dane lub swoim zachowaniem zagraża bezpieczeństwu innych Użytkowników.</li>
-    </ul>
+      <div class="ob-photo">
+        <img src="rowerem.jpg" alt="Grupa znajomych spędzająca czas razem">
+      </div>
 
-    <h2>§ 4. Publikowanie Ofert</h2>
-    <ul>
-      <li>Gospodarz samodzielnie określa treść Oferty, w tym: rodzaj aktywności, tytuł, datę i godzinę, miejsce startu, liczbę i charakterystykę poszukiwanych osób oraz opcjonalny opis.</li>
-      <li>W ramach Oferty publicznie widoczne są: imię, wiek oraz lokalizacja/miejsce startu Gospodarza. Numer telefonu Gospodarza nie jest publicznie widoczny na żadnym etapie przeglądania Ofert.</li>
-      <li>Gospodarz ponosi odpowiedzialność za prawdziwość, aktualność oraz zgodność z prawem informacji zawartych w publikowanej Ofercie.</li>
-      <li>Zabronione jest publikowanie Ofert: niezgodnych z prawem, naruszających dobra osobiste lub prywatność osób trzecich, wprowadzających w błąd co do rzeczywistej aktywności, o charakterze komercyjnym, reklamowym lub matrymonialnym/randkowym niezgodnym z celem Aplikacji, a także Ofert nieaktualnych.</li>
-      <li>Operator zastrzega sobie prawo do moderacji, ukrycia lub usunięcia Oferty naruszającej Regulamin lub przepisy prawa, bez konieczności wcześniejszego uzgodnienia z Gospodarzem.</li>
-    </ul>
-
-    <h2>§ 5. Zgłaszanie chęci dołączenia i ujawnianie numeru telefonu</h2>
-    <ul>
-      <li>Użytkownik zainteresowany dołączeniem do Oferty zgłasza chęć uczestnictwa za pośrednictwem funkcji dostępnej w Aplikacji (np. „Chcę dołączyć").</li>
-      <li>Numer telefonu Gospodarza zostaje ujawniony wyłącznie zgłaszającemu się Uczestnikowi i wyłącznie po zaakceptowaniu zgłoszenia przez Gospodarza — a więc po wyrażeniu obopólnej, świadomej zgody obu stron na wymianę danych kontaktowych.</li>
-      <li>Do czasu akceptacji zgłoszenia przez Gospodarza numer telefonu nie jest ujawniany Uczestnikowi.</li>
-      <li>Ujawnienie numeru telefonu następuje wyłącznie pomiędzy zainteresowanymi stronami i nie jest widoczne dla pozostałych Użytkowników Aplikacji.</li>
-      <li>Dalsze ustalenia dotyczące szczegółów wspólnej aktywności (dokładne miejsce i godzina zbiórki, ewentualne zmiany terminu, podział kosztów, wyposażenie itp.) odbywają się bezpośrednio pomiędzy Użytkownikami, poza Aplikacją, na ich wyłączną odpowiedzialność.</li>
-    </ul>
-
-    <h2>§ 6. Zakończenie i usuwanie Ofert</h2>
-    <ul>
-      <li>Aplikacja nie posiada mechanizmu automatycznego zamykania, dezaktywowania ani usuwania Oferty w momencie skompletowania przez Gospodarza wymaganej liczby osób.</li>
-      <li>W przypadku, gdy do Oferty zgłosi się liczba osób odpowiadająca lub przewyższająca liczbę wskazaną przez Gospodarza jako poszukiwaną, Gospodarz zobowiązany jest samodzielnie i ręcznie usunąć lub oznaczyć Ofertę jako nieaktywną w Aplikacji, tak aby nie wprowadzać w błąd pozostałych Użytkowników co do dalszej dostępności miejsc.</li>
-      <li>Do czasu ręcznego usunięcia Oferty przez Gospodarza pozostaje ona widoczna w Aplikacji dla wszystkich Użytkowników jako aktywna, niezależnie od faktycznej liczby osób, które już się zgłosiły.</li>
-      <li>Operator nie ponosi odpowiedzialności za skutki wynikające z nieusunięcia lub nieaktualizowania Oferty przez Gospodarza po skompletowaniu grupy, w tym za zgłoszenia dodatkowych osób do Oferty, która faktycznie nie dysponuje już wolnymi miejscami.</li>
-      <li>Niezależnie od powyższego, Operator zastrzega sobie prawo do samodzielnego usunięcia lub ukrycia Oferty nieaktualnej, wprowadzającej w błąd lub naruszającej Regulamin.</li>
-    </ul>
-
-    <h2>§ 7. Dane osobowe</h2>
-    <ul>
-      <li>Administratorem danych osobowych Użytkowników w rozumieniu Rozporządzenia Parlamentu Europejskiego i Rady (UE) 2016/679 (RODO) jest Operator, tj. PasionLife sp. z o.o. z siedzibą przy ul. Pod Dębiną 8, 43-430 Pierściec.</li>
-      <li>Zakres przetwarzanych danych obejmuje w szczególności: imię, wiek, lokalizację/miejsce startu, numer telefonu (ujawniany warunkowo, zgodnie z § 5), treść publikowanych Ofert oraz dane niezbędne do obsługi konta.</li>
-      <li>Numer telefonu Użytkownika nie jest domyślnie widoczny publicznie i jest ujawniany innemu Użytkownikowi wyłącznie po spełnieniu warunków opisanych w § 5.</li>
-      <li>Szczegółowe informacje dotyczące celów i podstaw prawnych przetwarzania danych, okresu ich przechowywania oraz praw przysługujących osobom, których dane dotyczą, zawarte są w odrębnej <a href="polityka-prywatnosci.html">Polityce Prywatności</a>, stanowiącej uzupełnienie niniejszego Regulaminu.</li>
-    </ul>
-
-    <h2>§ 8. Odpowiedzialność</h2>
-    <ul>
-      <li>Operator udostępnia Aplikację jako platformę techniczną umożliwiającą kontakt pomiędzy Użytkownikami i nie jest stroną umów ani ustaleń dotyczących wspólnych aktywności organizowanych przez Użytkowników.</li>
-      <li>Operator nie weryfikuje tożsamości Użytkowników ani prawdziwości danych podanych w Ofertach i nie ponosi odpowiedzialności za ich prawdziwość.</li>
-      <li>Użytkownicy uczestniczą we wspólnych aktywnościach dobrowolnie i na własną odpowiedzialność, samodzielnie oceniając ryzyko związane z daną aktywnością, w szczególności w przypadku aktywności o podwyższonym ryzyku (m.in. wędrówki górskie, sporty wodne, wyjazdy motocyklowe).</li>
-      <li>Operator zaleca zachowanie szczególnej ostrożności przy organizowaniu spotkań z osobami poznanymi za pośrednictwem Aplikacji, w tym wybór pierwszego spotkania w miejscu publicznym oraz poinformowanie osoby trzeciej o planach spotkania.</li>
-      <li>Operator nie ponosi odpowiedzialności za szkody powstałe w związku z uczestnictwem w aktywnościach organizowanych za pośrednictwem Aplikacji, z wyjątkiem szkód wyrządzonych z winy umyślnej Operatora.</li>
-    </ul>
-
-    <h2>§ 9. Reklamacje</h2>
-    <ul>
-      <li>Reklamacje dotyczące funkcjonowania Aplikacji Użytkownik może zgłaszać na adres e-mail: kontakt@wspolniego.pl lub pisemnie na adres siedziby Operatora wskazany w § 1 ust. 2.</li>
-      <li>Reklamacja powinna zawierać co najmniej: opis zgłaszanego problemu oraz dane kontaktowe umożliwiające udzielenie odpowiedzi.</li>
-      <li>Operator rozpatruje reklamację i udziela odpowiedzi w terminie 14 dni od dnia jej otrzymania.</li>
-    </ul>
-
-    <h2>§ 10. Postanowienia końcowe</h2>
-    <ul>
-      <li>Operator zastrzega sobie prawo do zmiany Regulaminu z ważnych przyczyn, w tym w szczególności: zmiany przepisów prawa, zmiany zakresu funkcjonalności Aplikacji, przeciwdziałania nadużyciom oraz zapewnienia bezpieczeństwa Użytkowników.</li>
-      <li>O planowanej zmianie Regulaminu Użytkownicy zostaną poinformowani z odpowiednim wyprzedzeniem za pośrednictwem Aplikacji lub podanego adresu e-mail.</li>
-      <li>W sprawach nieuregulowanych niniejszym Regulaminem zastosowanie mają przepisy prawa polskiego, w szczególności Kodeksu cywilnego oraz ustawy z dnia 18 lipca 2002 r. o świadczeniu usług drogą elektroniczną.</li>
-      <li>Niniejszy Regulamin wchodzi w życie z dniem 21 lipca 2026 r.</li>
-    </ul>
+      <button class="btn btn-primary" data-i18n="obStartBtn" onclick="finishOnboarding()">Rozpocznij</button>
+      <p class="ob-legal">
+        <span data-i18n="obLegalAccept">Kontynuując, akceptujesz</span> <a href="regulamin.html" target="_blank" data-i18n="obLegalRegulamin">Regulamin</a> <span data-i18n="obLegalService">serwisu.</span><br>
+        <span data-i18n="obLegalOwner">Własność: PasionLife sp. z o.o.</span>
+      </p>
+    </div>
   </div>
 
-  <footer>© 2026 PasionLife sp. z o.o. — wszelkie prawa zastrzeżone</footer>
+  <div id="auth-screen" style="position:absolute; inset:0; background:var(--paper); z-index:50; padding:36px 20px 20px; overflow-y:auto;">
+    <div style="text-align:center; margin-bottom:26px;">
+      <div style="font-family:'Fraunces',serif; font-size:26px; font-weight:600; color:var(--forest-dark);">Wspólnie<span style="color:var(--amber);">Go</span></div>
+      <div style="font-size:13px; color:var(--ink-soft); margin-top:6px;">Zaloguj się albo załóż konto</div>
+    </div>
+    <label>E-mail</label>
+    <input id="auth-email" type="email" placeholder="ty@przyklad.pl">
+    <label>Hasło</label>
+    <input id="auth-password" type="password" placeholder="min. 6 znaków">
+    <div id="forgot-password-link" style="display:none; text-align:right; margin-top:8px;">
+      <a href="#" onclick="event.preventDefault(); handleForgotPassword();" style="font-size:12.5px; color:var(--lake); font-weight:600; text-decoration:none;">Nie pamiętasz hasła?</a>
+    </div>
+    <div id="auth-register-fields">
+      <label>Twoje imię</label>
+      <input id="auth-name" type="text" placeholder="np. Tadeusz">
+      <label>Rodzaj konta</label>
+      <div class="filters" style="margin-bottom:2px;">
+        <div class="chip on" id="acc-type-individual" onclick="setAccountType('individual')">Klient indywidualny</div>
+        <div class="chip" id="acc-type-business" onclick="setAccountType('business')">Firma</div>
+      </div>
+      <div class="row2">
+        <div>
+          <div id="age-field-wrap"><label>Wiek</label><input id="auth-age" type="number" placeholder="60"></div>
+          <div id="nip-field-wrap" style="display:none;"><label>NIP firmy (opcjonalnie)</label><input id="auth-nip" type="text" placeholder="np. 1234567890"></div>
+        </div>
+        <div><label>Telefon</label><input id="auth-phone" type="tel" placeholder="600 123 456"></div>
+      </div>
+      <div class="form-note">🔒 Numer telefonu nigdy nie jest publiczny — pokażemy go dopiero po wzajemnej akceptacji zgłoszenia.</div>
+      <label style="display:flex; align-items:flex-start; gap:8px; font-weight:500; margin-top:16px; cursor:pointer;">
+        <input id="auth-terms" type="checkbox" style="width:auto; margin-top:3px; flex:0 0 auto;">
+        <span style="font-size:13px; color:var(--ink); font-weight:500;">
+          Akceptuję <a href="regulamin.html" target="_blank" style="color:var(--forest-dark); font-weight:700;">Regulamin</a>
+          i <a href="polityka-prywatnosci.html" target="_blank" style="color:var(--forest-dark); font-weight:700;">Politykę Prywatności</a> aplikacji WspólnieGo.
+        </span>
+      </label>
+    </div>
+    <button class="btn btn-primary" id="auth-submit-btn" onclick="handleSignUp()">Załóż konto</button>
+    <button class="btn btn-secondary" id="auth-toggle-btn" onclick="toggleAuthMode()">Mam już konto — zaloguj się</button>
+    <div id="auth-error" style="color:var(--amber-dark); font-size:13px; margin-top:12px; text-align:center;"></div>
+  </div>
+
+  <div id="recovery-screen" style="display:none; position:absolute; inset:0; background:var(--paper); z-index:55; padding:36px 20px 20px; overflow-y:auto;">
+    <div style="text-align:center; margin-bottom:26px;">
+      <div style="font-family:'Fraunces',serif; font-size:26px; font-weight:600; color:var(--forest-dark);">Wspólnie<span style="color:var(--amber);">Go</span></div>
+      <div style="font-size:13px; color:var(--ink-soft); margin-top:6px;">Ustaw nowe hasło</div>
+    </div>
+    <label>Nowe hasło</label>
+    <input id="recovery-password" type="password" placeholder="min. 6 znaków">
+    <label>Powtórz nowe hasło</label>
+    <input id="recovery-password-confirm" type="password" placeholder="powtórz hasło">
+    <button class="btn btn-primary" onclick="handlePasswordUpdate()">Ustaw nowe hasło</button>
+    <div id="recovery-error" style="color:var(--amber-dark); font-size:13px; margin-top:12px; text-align:center;"></div>
+  </div>
+
+  <header class="app-ui" style="display:none;">
+    <svg class="topo" viewBox="0 0 400 150" preserveAspectRatio="none">
+      <path d="M0,90 C60,60 100,110 160,80 C220,50 260,100 320,70 C360,50 380,65 400,55" stroke="white" stroke-width="2" fill="none"/>
+      <path d="M0,110 C60,85 100,130 160,105 C220,80 260,120 320,95 C360,80 380,90 400,82" stroke="white" stroke-width="2" fill="none"/>
+      <path d="M0,130 C60,110 100,145 160,125 C220,105 260,140 320,118 C360,105 380,112 400,108" stroke="white" stroke-width="2" fill="none"/>
+    </svg>
+    <div class="top-row">
+      <div>
+        <div class="brand">Wspólnie<span>Go</span></div>
+        <div class="tagline" data-i18n="tagline">Znajdź kogoś na wyjście, wyjazd albo aktywność</div>
+      </div>
+      <div class="lang-toggle">
+        <button id="lang-pl" onclick="setLang('pl')">PL</button>
+        <button id="lang-en" onclick="setLang('en')">EN</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="app-ui" style="display:none;">
+    <!-- SZUKAJ -->
+    <section id="tab-search" class="active">
+      <div class="searchbar">
+        🔍
+        <input id="search-input" type="text" data-i18n-placeholder="searchPlaceholder" placeholder="Szukaj: góry, rower, kajaki, miejscowość…" oninput="renderFeed()">
+      </div>
+      <div class="filters">
+        <div class="chip on" onclick="setFilter('all', this)" data-i18n="filterAll">Wszystko</div>
+        <div class="chip" onclick="setFilter('gory', this)" data-i18n="filterMountains">🏔️ Góry</div>
+        <div class="chip" onclick="setFilter('rower', this)" data-i18n="filterBike">🚴 Rower</div>
+        <div class="chip" onclick="setFilter('woda', this)" data-i18n="filterWater">🚤 Woda</div>
+        <div class="chip" onclick="setFilter('kawa', this)" data-i18n="filterCoffee">☕ Kawa</div>
+        <div class="chip" onclick="setFilter('motocykl', this)" data-i18n="filterMoto">🏍️ Motocykl</div>
+        <div class="chip" onclick="setFilter('inne', this)" data-i18n="filterOther">📌 Inne</div>
+      </div>
+      <div class="section-label" data-i18n="feedLabel">Blisko Ciebie · najbliższe terminy</div>
+      <div id="feed"></div>
+    </section>
+
+    <!-- DODAJ -->
+    <section id="tab-add">
+      <div class="section-label">Nowa propozycja</div>
+      <label data-i18n="labelType">Rodzaj aktywności</label>
+      <select id="f-type">
+        <option value="gory" data-i18n="optMountain">🏔️ Spacer / szlak górski</option>
+        <option value="rower" data-i18n="optBike">🚴 Wycieczka rowerowa</option>
+        <option value="motocykl" data-i18n="optMoto">🏍️ Wycieczka motocyklowa</option>
+        <option value="woda" data-i18n="optBoat">🚤 Pływanie łódką / kajakiem</option>
+        <option value="kawa" data-i18n="optCoffee">☕ Kawa / spotkanie</option>
+        <option value="basen" data-i18n="optPool">🏊 Basen</option>
+        <option value="zakupy" data-i18n="optShopping">🛍️ Wspólne zakupy</option>
+        <option value="wyjazd" data-i18n="optTrip">🚗 Wspólny wyjazd (dłuższa trasa)</option>
+        <option value="inne" data-i18n="optOther">📌 Coś innego</option>
+      </select>
+      <label data-i18n="labelTitle">Krótki tytuł</label>
+      <input id="f-title" type="text" data-i18n-placeholder="titlePlaceholder" placeholder="np. Spacer na Małą Czantorię">
+      <div class="row2">
+        <div><label data-i18n="labelDate">Data</label><input id="f-date" type="date"></div>
+        <div><label data-i18n="labelTime">Godzina</label><input id="f-time" type="time"></div>
+      </div>
+      <label data-i18n="labelLoc">Miejsce startu</label>
+      <input id="f-loc" type="text" data-i18n-placeholder="locPlaceholder" placeholder="np. Parking pod Czantorią, Ustroń">
+      <label data-i18n="labelNeed">Ilu osób szukasz i jakich?</label>
+      <input id="f-need" type="text" data-i18n-placeholder="needPlaceholder" placeholder="np. 2 osoby, dowolna płeć">
+      <label data-i18n="labelDesc">Opis (opcjonalnie)</label>
+      <textarea id="f-desc" data-i18n-placeholder="descPlaceholder" placeholder="Kilka słów o planie, tempie, wymaganiach…"></textarea>
+      <div class="form-note" data-i18n="formNote">🔒 Twój numer telefonu nie jest widoczny publicznie. Pokażemy go dopiero osobie, którą zaakceptujesz.</div>
+      <button class="btn btn-primary" onclick="addOffer()" data-i18n="publishBtn">Opublikuj propozycję</button>
+    </section>
+
+    <!-- PROFIL -->
+    <section id="tab-profile">
+      <div class="profile-head">
+        <div class="profile-avatar" id="profile-avatar">?</div>
+        <div class="profile-name" id="profile-name">—</div>
+        <div class="profile-sub" id="profile-sub">WspólnieGo</div>
+      </div>
+
+      <div class="accordion-item" style="margin-bottom:22px;">
+        <div class="accordion-header" onclick="toggleAccordion('acc-safety')">
+          <span data-i18n="safetyPanelTitle">🛡️ Zanim się spotkacie</span>
+          <span class="accordion-chevron" id="acc-safety-chevron">›</span>
+        </div>
+        <div class="accordion-body" id="acc-safety" style="display:none;">
+          <p style="font-size:13.5px; color:var(--ink-soft); margin:0 0 10px; line-height:1.5;" data-i18n="safetyPanelIntro">Kilka prostych zasad, które warto znać przed pierwszym spotkaniem z osobą poznaną w aplikacji:</p>
+          <ul style="margin:0; padding-left:18px;">
+            <li data-i18n="safetyTip1">Pierwsze spotkanie umów w miejscu publicznym (np. kawiarnia, parking, początek szlaku), a nie u kogoś w domu.</li>
+            <li data-i18n="safetyTip2">Powiedz bliskiej osobie, gdzie, z kim i o której się spotykasz — wyślij jej też numer telefonu drugiej osoby.</li>
+            <li data-i18n="safetyTip3">Miej naładowany telefon i, jeśli to możliwe, udostępnij swoją lokalizację bliskiej osobie na czas spotkania.</li>
+            <li data-i18n="safetyTip4">Nie przekazuj danych finansowych, haseł ani numeru dowodu osobistego przed spotkaniem ani w jego trakcie.</li>
+            <li data-i18n="safetyTip5">Ufaj swojej intuicji — jeśli coś wyda Ci się niepokojące, masz prawo zrezygnować w każdej chwili.</li>
+            <li data-i18n="safetyTip6">Jeśli ktoś zachowuje się niestosownie, zgłoś to przyciskiem „⚑ Zgłoś” — pomoże to chronić też innych.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="section-label" data-i18n="yourOffers">Twoje propozycje</div>
+      <div id="my-offers"></div>
+
+      <div class="section-label" style="margin-top:22px;" data-i18n="pendingRequests">Otrzymane zgłoszenia</div>
+      <div id="received-requests"></div>
+
+      <div class="section-label" style="margin-top:22px;" data-i18n="acceptedParticipants">Uczestnicy Twoich wydarzeń</div>
+      <div id="accepted-participants"></div>
+
+      <div class="section-label" style="margin-top:22px;" data-i18n="sentRequests">Twoje zgłoszenia do innych</div>
+      <div id="sent-requests"></div>
+
+      <div class="section-label" style="margin-top:22px;" data-i18n="privacySettings">Ustawienia prywatności</div>
+      <div class="list-item" style="cursor:pointer;" onclick="openPhoneVerification()">
+        <span data-i18n="phoneLabel">Numer telefonu</span>
+        <span id="phone-verify-status" style="color:var(--forest-dark); font-weight:700;">—</span>
+      </div>
+      <div class="list-item"><span data-i18n="profileVisibility">Widoczność profilu</span> <span style="color:var(--forest-dark); font-weight:700;" data-i18n="visibilityVal">tylko po zgodzie</span></div>
+      <div class="list-item" style="cursor:pointer;" onclick="openChangePassword()">
+        <span data-i18n="changePasswordLabel">Zmień hasło</span>
+        <span style="color:var(--lake); font-weight:700;">›</span>
+      </div>
+
+      <div class="section-label" style="margin-top:22px;" data-i18n="installGuideTitle">📲 Jak zainstalować aplikację</div>
+      <div class="accordion-item">
+        <div class="accordion-header" onclick="toggleAccordion('acc-ios')">
+          <span data-i18n="installIosHeader">🍏 iPhone (Safari)</span>
+          <span class="accordion-chevron" id="acc-ios-chevron">›</span>
+        </div>
+        <div class="accordion-body" id="acc-ios" style="display:none;">
+          <ol>
+            <li data-i18n="installIosStep1">Otwórz WspólnieGo w przeglądarce <b>Safari</b> — nie w Chrome ani żadnej innej aplikacji.</li>
+            <li data-i18n="installIosStep2">U dołu ekranu dotknij ikony <b>„Udostępnij”</b> (kwadrat ze strzałką w górę).</li>
+            <li data-i18n="installIosStep3">Przewiń listę w dół i wybierz <b>„Dodaj do ekranu początkowego”</b>.</li>
+            <li data-i18n="installIosStep4">Dotknij <b>„Dodaj”</b> w prawym górnym rogu.</li>
+            <li data-i18n="installIosStep5">Gotowe — na ekranie głównym pojawi się ikona WspólnieGo, działająca jak zwykła aplikacja.</li>
+          </ol>
+        </div>
+      </div>
+      <div class="accordion-item">
+        <div class="accordion-header" onclick="toggleAccordion('acc-android')">
+          <span data-i18n="installAndroidHeader">🤖 Android (Chrome)</span>
+          <span class="accordion-chevron" id="acc-android-chevron">›</span>
+        </div>
+        <div class="accordion-body" id="acc-android" style="display:none;">
+          <ol>
+            <li data-i18n="installAndroidStep1">Otwórz WspólnieGo w przeglądarce <b>Chrome</b>.</li>
+            <li data-i18n="installAndroidStep2">Dotknij menu (trzy kropki) w prawym górnym rogu.</li>
+            <li data-i18n="installAndroidStep3">Wybierz <b>„Zainstaluj aplikację”</b> (lub „Dodaj do ekranu głównego”).</li>
+            <li data-i18n="installAndroidStep4">Potwierdź, dotykając <b>„Zainstaluj”</b>.</li>
+            <li data-i18n="installAndroidStep5">Gotowe — ikona pojawi się na ekranie głównym.</li>
+          </ol>
+        </div>
+      </div>
+
+      <div id="admin-panel-section" style="display:none;">
+        <div class="section-label" style="margin-top:22px;" data-i18n="adminPanelTitle">🛡️ Panel moderacji</div>
+        <div id="admin-reports"></div>
+      </div>
+
+      <div class="section-label" style="margin-top:22px;" data-i18n="supportTitle">Wsparcie aplikacji</div>
+      <div style="background:var(--card); border:1px solid var(--line); border-radius:14px; padding:16px;">
+        <p style="font-size:14px; line-height:1.6; color:var(--ink); margin:0;" data-i18n="supportText">Nasza aplikacja jest dla każdego. Będziemy wdzięczni za każdą wpłatę na jej dalszy rozwój.</p>
+        <div class="support-line">
+          <div class="lbl" data-i18n="supportBlikLbl">BLIK na telefon</div>
+          <div class="val">502 758 634</div>
+        </div>
+        <button class="btn btn-call" id="copy-blik-btn" onclick="copyBlik()" data-i18n="copyBlikBtn">📋 Kopiuj numer BLIK</button>
+        <div class="form-note" data-i18n="supportInvoiceNote">🧾 Prowadzisz firmę? Możesz otrzymać fakturę za wsparcie. Napisz do nas na kontakt@wspolniego.pl.</div>
+      </div>
+
+      <button class="btn btn-secondary" style="margin-top:22px;" onclick="handleSignOut()" data-i18n="signOutBtn">Wyloguj się</button>
+
+      <p style="text-align:center; font-size:12px; margin:22px 0 0;">
+        <a href="regulamin.html" target="_blank" style="color:var(--lake); font-weight:600; text-decoration:none;" data-i18n="footerRegulamin">Regulamin</a>
+        <span style="color:var(--line);">&nbsp;·&nbsp;</span>
+        <a href="polityka-prywatnosci.html" target="_blank" style="color:var(--lake); font-weight:600; text-decoration:none;" data-i18n="footerPolityka">Polityka Prywatności</a>
+      </p>
+      <p style="text-align:center; font-size:11px; color:var(--ink-soft); margin:8px 0 4px; text-transform:lowercase;" data-i18n="copyrightNote">© 2026 PasionLife sp. z o.o. — wszelkie prawa zastrzeżone</p>
+    </section>
+  </main>
+
+  <div class="overlay" id="overlay">
+    <div class="sheet" id="sheet"></div>
+  </div>
+
+  <div id="install-banner">
+    <div class="ib-icon">📲</div>
+    <div class="ib-text"><b id="ib-title">Zainstaluj WspólnieGo</b><span id="ib-subtitle">Dodaj ikonę na ekran główny telefonu</span></div>
+    <button class="ib-install" id="ib-install-btn" onclick="handleInstallClick()">Zainstaluj</button>
+    <button class="ib-dismiss" onclick="dismissInstallBanner()">✕</button>
+  </div>
+
+  <nav class="app-ui" style="display:none;">
+    <button class="active" data-tab="tab-search" onclick="showTab('tab-search',this)">
+      <span class="ic">🔍</span>Szukaj
+    </button>
+    <button class="fab" data-tab="tab-add" onclick="showTab('tab-add',this)">
+      <span class="ic">＋</span>
+    </button>
+    <button data-tab="tab-profile" onclick="showTab('tab-profile',this)">
+      <span class="ic">👤</span>Profil
+    </button>
+  </nav>
 </div>
+
+<script>
+// ============================================================
+// KONFIGURACJA SUPABASE — wklej tu swoje dane z Supabase → Settings → API
+// ============================================================
+const SUPABASE_URL = "https://jfbydwcwxiqhmqpkotld.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpmYnlkd2N3eGlxaG1xcGtvdGxkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQyOTYzNzMsImV4cCI6MjA5OTg3MjM3M30.r37mkZltQVCWqn7BsFF1KrbNSa6P8Lkp0vUNyHds9Tc";
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// Gdy ktoś kliknie link resetujący hasło z maila, Supabase wykrywa to
+// w URL-u i zamiast normalnego logowania wysyła zdarzenie PASSWORD_RECOVERY.
+sb.auth.onAuthStateChange((event) => {
+  if(event === 'PASSWORD_RECOVERY'){
+    document.getElementById('auth-screen').style.display = 'none';
+    document.querySelectorAll('.app-ui').forEach(el => el.style.display = 'none');
+    document.getElementById('recovery-screen').style.display = 'block';
+  }
+});
+
+const ICONS = { gory:"🏔️", rower:"🚴", motocykl:"🏍️", woda:"🚤", kawa:"☕", basen:"🏊", zakupy:"🛍️", wyjazd:"🚗", inne:"📌" };
+
+let session = null;
+let myProfile = null;
+let offers = [];
+let currentFilter = 'all';
+let authMode = 'register';
+let accountType = 'individual';
+
+// ---------------- JĘZYK (PL/EN) ----------------
+
+const translations = {
+  pl:{
+    tagline:"Znajdź kogoś na wyjście, wyjazd albo aktywność",
+    searchPlaceholder:"Szukaj: góry, rower, kajaki, miejscowość…",
+    filterAll:"Wszystko", filterMountains:"🏔️ Góry", filterBike:"🚴 Rower", filterWater:"🚤 Woda",
+    filterCoffee:"☕ Kawa", filterMoto:"🏍️ Motocykl", filterOther:"📌 Inne",
+    feedLabel:"Blisko Ciebie · najbliższe terminy",
+    labelType:"Rodzaj aktywności",
+    optMountain:"🏔️ Spacer / szlak górski", optBike:"🚴 Wycieczka rowerowa", optMoto:"🏍️ Wycieczka motocyklowa",
+    optBoat:"🚤 Pływanie łódką / kajakiem", optCoffee:"☕ Kawa / spotkanie", optPool:"🏊 Basen",
+    optShopping:"🛍️ Wspólne zakupy", optTrip:"🚗 Wspólny wyjazd (dłuższa trasa)", optOther:"📌 Coś innego",
+    labelTitle:"Krótki tytuł", titlePlaceholder:"np. Spacer na Małą Czantorię",
+    labelDate:"Data", labelTime:"Godzina",
+    labelLoc:"Miejsce startu", locPlaceholder:"np. Parking pod Czantorią, Ustroń",
+    labelNeed:"Ilu osób szukasz i jakich?", needPlaceholder:"np. 2 osoby, dowolna płeć",
+    labelDesc:"Opis (opcjonalnie)", descPlaceholder:"Kilka słów o planie, tempie, wymaganiach…",
+    formNote:"🔒 Twój numer telefonu nie jest widoczny publicznie. Pokażemy go dopiero osobie, którą zaakceptujesz.",
+    publishBtn:"Opublikuj propozycję",
+    yourOffers:"Twoje propozycje",
+    pendingRequests:"Otrzymane zgłoszenia", acceptedParticipants:"Uczestnicy Twoich wydarzeń",
+    sentRequests:"Twoje zgłoszenia do innych",
+    privacySettings:"Ustawienia prywatności", phoneLabel:"Numer telefonu", hiddenVal:"ukryty",
+    profileVisibility:"Widoczność profilu", visibilityVal:"tylko po zgodzie",
+    changePasswordLabel:"Zmień hasło",
+    cpTitle:"Zmień hasło", cpNewLabel:"Nowe hasło", cpConfirmLabel:"Powtórz nowe hasło",
+    cpSaveBtn:"Zapisz nowe hasło", cpTooShort:"Hasło musi mieć min. 6 znaków.",
+    cpMismatch:"Hasła nie są takie same.", cpFailed:"Nie udało się zmienić hasła:",
+    cpDoneTitle:"Hasło zmienione ✅", cpDoneBody:"Od teraz logujesz się nowym hasłem.",
+    reportBtn:"⚑ Zgłoś", reportModalTitle:"Zgłoś użytkownika",
+    reportReasonLabel:"Powód zgłoszenia",
+    reportReason1:"Nieodpowiednie / obraźliwe zachowanie",
+    reportReason2:"Podejrzenie fałszywego konta",
+    reportReason3:"Próba oszustwa lub zagrożenie bezpieczeństwa",
+    reportReason4:"Spam lub treści niezwiązane z aplikacją",
+    reportReason5:"Inne",
+    reportDescLabel:"Dodatkowe informacje (opcjonalnie)",
+    reportSubmitBtn:"Wyślij zgłoszenie",
+    reportSentTitle:"Zgłoszenie wysłane ✅",
+    reportSentBody:"Dziękujemy — zespół WspólnieGo przyjrzy się zgłoszeniu. W pilnych sprawach napisz na kontakt@wspolniego.pl.",
+    reportFailed:"Nie udało się wysłać zgłoszenia:",
+    adminPanelTitle:"🛡️ Panel moderacji",
+    adminNoReports:"Brak nowych zgłoszeń.",
+    adminReportedLbl:"Zgłoszony",
+    adminReporterLbl:"Zgłaszający",
+    adminRelatedOfferLbl:"Powiązana oferta",
+    adminBlockBtn:"Zablokuj użytkownika",
+    adminDismissBtn:"Odrzuć",
+    adminResolveBtn:"Rozwiązane",
+    adminConfirmBlock:"Zablokować to konto? Użytkownik nie będzie mógł dodawać nowych ofert ani dołączać do wydarzeń, a jego aktywne oferty znikną z listy.",
+    adminBlockFailed:"Nie udało się zablokować:", adminActionFailed:"Nie udało się zapisać:",
+    adminBlockedSuffix:"— zablokowany ✅",
+    blockedAccountMsg:"Twoje konto zostało zablokowane. Jeśli uważasz, że to pomyłka, napisz na kontakt@wspolniego.pl.",
+    phoneVerifiedBadge:"✅ zweryfikowany", phoneUnverifiedBadge:"niezweryfikowany — zweryfikuj",
+    phoneVerifyTitle:"Zweryfikuj numer telefonu",
+    phoneVerifyIntro:"Wyślemy SMS-em jednorazowy kod na numer podany przy rejestracji.",
+    phoneNumberLabel:"Numer telefonu",
+    sendCodeBtn:"Wyślij kod SMS",
+    phoneVerifyEnterCode:"Wpisz 6-cyfrowy kod z SMS-a",
+    codeLabel:"Kod SMS",
+    confirmCodeBtn:"Potwierdź kod",
+    resendCodeBtn:"Wyślij kod ponownie",
+    phoneOtpSentMsg:"Kod wysłany. Sprawdź SMS-y (może dojść do minuty).",
+    phoneVerifySuccessTitle:"Numer zweryfikowany ✅",
+    phoneVerifySuccessBody:"Dzięki temu inni użytkownicy widzą, że Twój numer jest prawdziwy.",
+    phoneVerifyFailed:"Nie udało się wysłać kodu:",
+    phoneCodeFailed:"Nieprawidłowy lub wygasły kod:",
+    phoneAlreadyVerified:"Twój numer telefonu jest już zweryfikowany.",
+    verifiedTag:"✓",
+    safetyPanelTitle:"🛡️ Zanim się spotkacie",
+    safetyPanelIntro:"Kilka prostych zasad, które warto znać przed pierwszym spotkaniem z osobą poznaną w aplikacji:",
+    safetyTip1:"Pierwsze spotkanie umów w miejscu publicznym (np. kawiarnia, parking, początek szlaku), a nie u kogoś w domu.",
+    safetyTip2:"Powiedz bliskiej osobie, gdzie, z kim i o której się spotykasz — wyślij jej też numer telefonu drugiej osoby.",
+    safetyTip3:"Miej naładowany telefon i, jeśli to możliwe, udostępnij swoją lokalizację bliskiej osobie na czas spotkania.",
+    safetyTip4:"Nie przekazuj danych finansowych, haseł ani numeru dowodu osobistego przed spotkaniem ani w jego trakcie.",
+    safetyTip5:"Ufaj swojej intuicji — jeśli coś wyda Ci się niepokojące, masz prawo zrezygnować w każdej chwili.",
+    safetyTip6:"Jeśli ktoś zachowuje się niestosownie, zgłoś to przyciskiem „⚑ Zgłoś” — pomoże to chronić też innych.",
+    safetyReminderShort:"🛡️ Przypomnienie: pierwsze spotkanie umów w miejscu publicznym i poinformuj bliską osobę o planach.",
+    copyrightNote:"© 2026 PasionLife sp. z o.o. — wszelkie prawa zastrzeżone",
+    footerRegulamin:"Regulamin",
+    footerPolityka:"Polityka Prywatności",
+    installGuideTitle:"📲 Jak zainstalować aplikację",
+    installIosHeader:"🍏 iPhone (Safari)",
+    installIosStep1:"Otwórz WspólnieGo w przeglądarce Safari — nie w Chrome ani żadnej innej aplikacji.",
+    installIosStep2:"U dołu ekranu dotknij ikony „Udostępnij” (kwadrat ze strzałką w górę).",
+    installIosStep3:"Przewiń listę w dół i wybierz „Dodaj do ekranu początkowego”.",
+    installIosStep4:"Dotknij „Dodaj” w prawym górnym rogu.",
+    installIosStep5:"Gotowe — na ekranie głównym pojawi się ikona WspólnieGo, działająca jak zwykła aplikacja.",
+    installAndroidHeader:"🤖 Android (Chrome)",
+    installAndroidStep1:"Otwórz WspólnieGo w przeglądarce Chrome.",
+    installAndroidStep2:"Dotknij menu (trzy kropki) w prawym górnym rogu.",
+    installAndroidStep3:"Wybierz „Zainstaluj aplikację” (lub „Dodaj do ekranu głównego”).",
+    installAndroidStep4:"Potwierdź, dotykając „Zainstaluj”.",
+    installAndroidStep5:"Gotowe — ikona pojawi się na ekranie głównym.",
+    iosInstallBannerTitle:"Zainstaluj WspólnieGo",
+    iosInstallBannerText:"Dotknij Udostępnij, a potem „Dodaj do ekranu początkowego”",
+    iosInstallBannerBtn:"Jak to zrobić?",
+    supportTitle:"Wsparcie aplikacji",
+    supportText:"Nasza aplikacja jest dla każdego. Będziemy wdzięczni za każdą wpłatę na jej dalszy rozwój.",
+    supportBlikLbl:"BLIK na telefon", copyBlikBtn:"📋 Kopiuj numer BLIK", copiedBtn:"✅ Skopiowano!",
+    supportInvoiceNote:"🧾 Prowadzisz firmę? Możesz otrzymać fakturę za wsparcie. Napisz do nas na kontakt@wspolniego.pl.",
+    signOutBtn:"Wyloguj się",
+    emptyBig:"Brak propozycji w tej kategorii", emptySub:"Spróbuj innego filtra, zmień wyszukiwanie albo dodaj swoją ofertę!",
+    joinBtn:"Chcę dołączyć", backBtn:"Wróć do listy", myOfferBtn:"To Twoja oferta",
+    sendingRequest:"Wysyłanie zgłoszenia…", requestFailed:"Nie udało się wysłać zgłoszenia:",
+    requestSentTitle:"Zgłoszenie wysłane ✅",
+    requestSentBody:"Host zobaczy je w swoim profilu. Gdy je zaakceptuje, numer telefonu pojawi się w Twoim profilu, w sekcji „Twoje zgłoszenia do innych”.",
+    closeBtn:"Zamknij", callBtn:"📞 Zadzwoń teraz",
+    noOffers:"Nie masz jeszcze żadnych propozycji.", activeLbl:"aktywna", expiredLbl:"termin minął", deleteBtn:"Usuń",
+    confirmDelete:"Na pewno chcesz usunąć tę propozycję? Uczestnicy nie zostaną automatycznie powiadomieni.",
+    deleteFailed:"Nie udało się usunąć:",
+    noPending:"Brak nowych zgłoszeń.", acceptBtn:"Akceptuj", declineBtn:"Odrzuć",
+    noAccepted:"Nikt jeszcze nie dołączył do Twoich wydarzeń.", removeBtn:"Usuń uczestnika",
+    confirmRemove:"Usunąć tę osobę z wydarzenia? Numer telefonu przestanie być dla niej widoczny.",
+    removeFailed:"Nie udało się usunąć uczestnika:",
+    noSent:"Nie wysłałaś/eś jeszcze żadnych zgłoszeń.",
+    statusPending:"oczekuje", statusAccepted:"zaakceptowano", statusDeclined:"odrzucono", statusCancelled:"anulowano",
+    yearsLbl:"lat", noDescText:"Brak dodatkowego opisu.",
+    obTagline:"Efektywnie spędzony czas",
+    obLede:"Aplikacja, dzięki której możesz poznać osoby, które tak jak Ty chcą aktywnie spędzać czas. Możesz dołączyć do innych lub sam zaproponować sposób jego spędzenia, jednej osobie albo całej grupie.",
+    obStory1:"Masz ochotę jutro wybrać się w góry 🏔️, ale nie masz z kim? Chcesz popływać łódką 🚤, lecz nie masz patentu albo wręcz przeciwnie: masz patent, ale brakuje Ci towarzystwa? Marzy Ci się podróż na drugi koniec Polski 🚗, ale nie masz pomysłu lub osoby, z którą mógłbyś ją zrealizować? A może jeździsz motocyklem 🏍️ i chcesz ruszyć w trasę z kimś jeszcze?",
+    obStory2:"🤝 Wspólnie możecie decydować o przebiegu spotkania albo sam możesz zaproponować, jak chcecie spędzić czas.",
+    obStory3:"🚴‍♀️🏐🚶 Może w trzech na rowerach, może w grupie grając w piłkę, a może we dwoje na spacerze.",
+    obStartBtn:"Rozpocznij",
+    obLegalAccept:"Kontynuując, akceptujesz",
+    obLegalRegulamin:"Regulamin",
+    obLegalService:"serwisu.",
+    obLegalOwner:"Własność: PasionLife sp. z o.o."
+  },
+  en:{
+    tagline:"Find someone to join you for an outing, trip or activity",
+    searchPlaceholder:"Search: mountains, biking, kayaking, town…",
+    filterAll:"All", filterMountains:"🏔️ Mountains", filterBike:"🚴 Biking", filterWater:"🚤 Water",
+    filterCoffee:"☕ Coffee", filterMoto:"🏍️ Motorcycle", filterOther:"📌 Other",
+    feedLabel:"Near you · upcoming dates",
+    labelType:"Activity type",
+    optMountain:"🏔️ Walk / mountain trail", optBike:"🚴 Bike trip", optMoto:"🏍️ Motorcycle trip",
+    optBoat:"🚤 Boating / kayaking", optCoffee:"☕ Coffee / meetup", optPool:"🏊 Swimming pool",
+    optShopping:"🛍️ Shopping together", optTrip:"🚗 Road trip (longer distance)", optOther:"📌 Something else",
+    labelTitle:"Short title", titlePlaceholder:"e.g. Walk to Mała Czantoria",
+    labelDate:"Date", labelTime:"Time",
+    labelLoc:"Starting point", locPlaceholder:"e.g. Parking lot at Czantoria, Ustroń",
+    labelNeed:"How many people, and who?", needPlaceholder:"e.g. 2 people, any gender",
+    labelDesc:"Description (optional)", descPlaceholder:"A few words about the plan, pace, requirements…",
+    formNote:"🔒 Your phone number is never public. We'll only show it to a person you accept.",
+    publishBtn:"Publish listing",
+    yourOffers:"Your listings",
+    pendingRequests:"Pending requests", acceptedParticipants:"Participants in your events",
+    sentRequests:"Your requests to others",
+    privacySettings:"Privacy settings", phoneLabel:"Phone number", hiddenVal:"hidden",
+    profileVisibility:"Profile visibility", visibilityVal:"only after consent",
+    changePasswordLabel:"Change password",
+    cpTitle:"Change password", cpNewLabel:"New password", cpConfirmLabel:"Confirm new password",
+    cpSaveBtn:"Save new password", cpTooShort:"Password must be at least 6 characters.",
+    cpMismatch:"Passwords don't match.", cpFailed:"Couldn't change password:",
+    cpDoneTitle:"Password changed ✅", cpDoneBody:"You'll now sign in with your new password.",
+    reportBtn:"⚑ Report", reportModalTitle:"Report user",
+    reportReasonLabel:"Reason for report",
+    reportReason1:"Inappropriate / offensive behavior",
+    reportReason2:"Suspected fake account",
+    reportReason3:"Attempted scam or safety concern",
+    reportReason4:"Spam or unrelated content",
+    reportReason5:"Other",
+    reportDescLabel:"Additional details (optional)",
+    reportSubmitBtn:"Send report",
+    reportSentTitle:"Report sent ✅",
+    reportSentBody:"Thank you — the WspólnieGo team will review it. For urgent matters, email kontakt@wspolniego.pl.",
+    reportFailed:"Couldn't send the report:",
+    adminPanelTitle:"🛡️ Moderation panel",
+    adminNoReports:"No new reports.",
+    adminReportedLbl:"Reported",
+    adminReporterLbl:"Reporter",
+    adminRelatedOfferLbl:"Related listing",
+    adminBlockBtn:"Block user",
+    adminDismissBtn:"Dismiss",
+    adminResolveBtn:"Resolved",
+    adminConfirmBlock:"Block this account? The user won't be able to create listings or join events, and their active listings will disappear from the feed.",
+    adminBlockFailed:"Couldn't block:", adminActionFailed:"Couldn't save:",
+    adminBlockedSuffix:"— blocked ✅",
+    blockedAccountMsg:"Your account has been blocked. If you think this is a mistake, email kontakt@wspolniego.pl.",
+    phoneVerifiedBadge:"✅ verified", phoneUnverifiedBadge:"not verified — verify",
+    phoneVerifyTitle:"Verify your phone number",
+    phoneVerifyIntro:"We'll text a one-time code to the number you gave at sign-up.",
+    phoneNumberLabel:"Phone number",
+    sendCodeBtn:"Send SMS code",
+    phoneVerifyEnterCode:"Enter the 6-digit code from the text",
+    codeLabel:"SMS code",
+    confirmCodeBtn:"Confirm code",
+    resendCodeBtn:"Resend code",
+    phoneOtpSentMsg:"Code sent. Check your texts (may take up to a minute).",
+    phoneVerifySuccessTitle:"Phone verified ✅",
+    phoneVerifySuccessBody:"Other users will now see your number is real.",
+    phoneVerifyFailed:"Couldn't send the code:",
+    phoneCodeFailed:"Invalid or expired code:",
+    phoneAlreadyVerified:"Your phone number is already verified.",
+    verifiedTag:"✓",
+    safetyPanelTitle:"🛡️ Before you meet up",
+    safetyPanelIntro:"A few simple rules worth knowing before meeting someone from the app for the first time:",
+    safetyTip1:"Arrange your first meeting in a public place (a café, a car park, a trailhead) rather than at someone's home.",
+    safetyTip2:"Tell someone close to you where, with whom, and when you're meeting — share the other person's phone number too.",
+    safetyTip3:"Keep your phone charged and, if possible, share your location with someone you trust for the duration of the meetup.",
+    safetyTip4:"Don't share financial details, passwords, or ID numbers before or during the meeting.",
+    safetyTip5:"Trust your instincts — if something feels off, you're allowed to back out at any time.",
+    safetyTip6:"If someone behaves inappropriately, report it with the „⚑ Report” button — it helps protect other users too.",
+    safetyReminderShort:"🛡️ Reminder: meet in a public place first and let someone close to you know your plans.",
+    copyrightNote:"© 2026 PasionLife sp. z o.o. — all rights reserved",
+    footerRegulamin:"Terms of Service",
+    footerPolityka:"Privacy Policy",
+    installGuideTitle:"📲 How to install the app",
+    installIosHeader:"🍏 iPhone (Safari)",
+    installIosStep1:"Open WspólnieGo in Safari — not in Chrome or any other app.",
+    installIosStep2:"At the bottom of the screen, tap the Share icon (a square with an arrow pointing up).",
+    installIosStep3:"Scroll down the list and choose „Add to Home Screen”.",
+    installIosStep4:"Tap „Add” in the top-right corner.",
+    installIosStep5:"Done — a WspólnieGo icon will appear on your home screen and work just like a regular app.",
+    installAndroidHeader:"🤖 Android (Chrome)",
+    installAndroidStep1:"Open WspólnieGo in Chrome.",
+    installAndroidStep2:"Tap the menu (three dots) in the top-right corner.",
+    installAndroidStep3:"Choose „Install app” (or „Add to Home screen”).",
+    installAndroidStep4:"Confirm by tapping „Install”.",
+    installAndroidStep5:"Done — the icon will appear on your home screen.",
+    iosInstallBannerTitle:"Install WspólnieGo",
+    iosInstallBannerText:"Tap Share, then „Add to Home Screen”",
+    iosInstallBannerBtn:"How do I do that?",
+    supportTitle:"Support the app",
+    supportText:"Our app is for everyone. We'll be grateful for any contribution towards its further development.",
+    supportBlikLbl:"BLIK to phone number", copyBlikBtn:"📋 Copy BLIK number", copiedBtn:"✅ Copied!",
+    supportInvoiceNote:"🧾 Running a business? You can get an invoice for your support. Email us at kontakt@wspolniego.pl.",
+    signOutBtn:"Sign out",
+    emptyBig:"No listings in this category", emptySub:"Try another filter, change your search, or add your own listing!",
+    joinBtn:"I want to join", backBtn:"Back to list", myOfferBtn:"This is your listing",
+    sendingRequest:"Sending request…", requestFailed:"Couldn't send the request:",
+    requestSentTitle:"Request sent ✅",
+    requestSentBody:"The host will see it in their profile. Once they accept, the phone number will appear in your profile, under “Your requests to others”.",
+    closeBtn:"Close", callBtn:"📞 Call now",
+    noOffers:"You don't have any listings yet.", activeLbl:"active", expiredLbl:"date passed", deleteBtn:"Delete",
+    confirmDelete:"Are you sure you want to delete this listing? Participants won't be automatically notified.",
+    deleteFailed:"Couldn't delete:",
+    noPending:"No new requests.", acceptBtn:"Accept", declineBtn:"Decline",
+    noAccepted:"No one has joined your events yet.", removeBtn:"Remove participant",
+    confirmRemove:"Remove this person from the event? They'll no longer see your phone number.",
+    removeFailed:"Couldn't remove participant:",
+    noSent:"You haven't sent any requests yet.",
+    statusPending:"pending", statusAccepted:"accepted", statusDeclined:"declined", statusCancelled:"cancelled",
+    yearsLbl:"y/o", noDescText:"No additional description.",
+    obTagline:"Time well spent",
+    obLede:"An app that lets you meet people who, just like you, feel like spending time together — or you can suggest the perfect way to spend time with a person or a group.",
+    obStory1:"🧭 WspólnieGo is an app for spending time together — say you feel like going hiking tomorrow but don't really have anyone to go with 🏔️, you'd like to go boating but don't have a licence, or you have one but no one to sail with 🚤, you want to travel across the country but have no company or no idea for a trip 🚗, or maybe you ride a motorcycle and want someone to join you 🏍️.",
+    obStory2:"🤝 Together you can decide how the meetup will go, or you can suggest it yourself — you decide on the activity, the place and the time.",
+    obStory3:"🚴‍♀️🏐🚶 Maybe the three of you on bikes, maybe a group playing football, or maybe just the two of you on a walk.",
+    obStartBtn:"Get started",
+    obLegalAccept:"By continuing, you accept the",
+    obLegalRegulamin:"Terms of Service",
+    obLegalService:"of the app.",
+    obLegalOwner:"Owned by: PasionLife sp. z o.o."
+  }
+};
+
+let currentLang = 'pl';
+function t(key){ return translations[currentLang][key] ?? key; }
+
+function setLang(lang){
+  currentLang = lang;
+  document.documentElement.lang = lang;
+  const plBtn = document.getElementById('lang-pl');
+  const enBtn = document.getElementById('lang-en');
+  if(plBtn) plBtn.classList.toggle('on', lang === 'pl');
+  if(enBtn) enBtn.classList.toggle('on', lang === 'en');
+  const obPlBtn = document.getElementById('ob-lang-pl');
+  const obEnBtn = document.getElementById('ob-lang-en');
+  if(obPlBtn) obPlBtn.classList.toggle('on', lang === 'pl');
+  if(obEnBtn) obEnBtn.classList.toggle('on', lang === 'en');
+  applyStaticTranslations();
+  renderFeed();
+  updatePhoneVerifyStatus();
+  if(session) renderProfile();
+}
+
+function applyStaticTranslations(){
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    el.textContent = t(el.getAttribute('data-i18n'));
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el=>{
+    el.placeholder = t(el.getAttribute('data-i18n-placeholder'));
+  });
+}
+
+function toggleAccordion(id){
+  const body = document.getElementById(id);
+  const chevron = document.getElementById(id + '-chevron');
+  const isOpen = body.style.display === 'block';
+  body.style.display = isOpen ? 'none' : 'block';
+  if(chevron) chevron.classList.toggle('open', !isOpen);
+}
+
+function copyBlik(){
+  const number = "502758634";
+  const btn = document.getElementById('copy-blik-btn');
+  const finish = ()=>{
+    btn.textContent = t('copiedBtn');
+    setTimeout(()=>{ btn.textContent = t('copyBlikBtn'); }, 1800);
+  };
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(number).then(finish).catch(finish);
+  } else {
+    const tmp = document.createElement('textarea');
+    tmp.value = number;
+    document.body.appendChild(tmp);
+    tmp.select();
+    try{ document.execCommand('copy'); }catch(e){}
+    document.body.removeChild(tmp);
+    finish();
+  }
+}
+
+function escapeHtml(str){
+  if(str == null) return '';
+  return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function initials(name){ return (name || '?').trim().charAt(0).toUpperCase(); }
+
+// ---------------- AUTORYZACJA ----------------
+
+function toggleAuthMode(){
+  authMode = authMode === 'register' ? 'login' : 'register';
+  document.getElementById('auth-register-fields').style.display = authMode === 'register' ? 'block' : 'none';
+  document.getElementById('forgot-password-link').style.display = authMode === 'login' ? 'block' : 'none';
+  const submitBtn = document.getElementById('auth-submit-btn');
+  const toggleBtn = document.getElementById('auth-toggle-btn');
+  if(authMode === 'register'){
+    submitBtn.textContent = 'Załóż konto';
+    submitBtn.onclick = handleSignUp;
+    toggleBtn.textContent = 'Mam już konto — zaloguj się';
+    setAccountType('individual');
+  } else {
+    submitBtn.textContent = 'Zaloguj się';
+    submitBtn.onclick = handleSignIn;
+    toggleBtn.textContent = 'Nie mam konta — zarejestruj się';
+  }
+  document.getElementById('auth-error').textContent = '';
+}
+
+function showAuthError(msg){
+  document.getElementById('auth-error').textContent = msg;
+}
+
+function setAccountType(type){
+  accountType = type;
+  document.getElementById('acc-type-individual').classList.toggle('on', type === 'individual');
+  document.getElementById('acc-type-business').classList.toggle('on', type === 'business');
+  document.getElementById('age-field-wrap').style.display = type === 'individual' ? 'block' : 'none';
+  document.getElementById('nip-field-wrap').style.display = type === 'business' ? 'block' : 'none';
+  showAuthError('');
+}
+
+async function handleForgotPassword(){
+  const email = document.getElementById('auth-email').value.trim();
+  if(!email){ showAuthError('Podaj swój adres e-mail, żeby zresetować hasło.'); return; }
+  const { error } = await sb.auth.resetPasswordForEmail(email, {
+    redirectTo: window.location.origin + window.location.pathname
+  });
+  if(error){ showAuthError('Nie udało się wysłać linku: ' + error.message); return; }
+  showAuthError('Wysłaliśmy link do zresetowania hasła na Twój e-mail. Sprawdź skrzynkę (także SPAM) i kliknij w link.');
+}
+
+async function handlePasswordUpdate(){
+  const pw = document.getElementById('recovery-password').value;
+  const pw2 = document.getElementById('recovery-password-confirm').value;
+  const errEl = document.getElementById('recovery-error');
+  errEl.textContent = '';
+  if(!pw || pw.length < 6){ errEl.textContent = 'Hasło musi mieć min. 6 znaków.'; return; }
+  if(pw !== pw2){ errEl.textContent = 'Hasła nie są takie same.'; return; }
+  const { error } = await sb.auth.updateUser({ password: pw });
+  if(error){ errEl.textContent = 'Nie udało się ustawić hasła: ' + error.message; return; }
+  document.getElementById('recovery-screen').style.display = 'none';
+  await initApp();
+}
+
+function openChangePassword(){
+  const sheet = document.getElementById('sheet');
+  sheet.innerHTML = `
+    <div class="sheet-handle"></div>
+    <div class="close-x" onclick="closeOverlay()">✕</div>
+    <h2>${t('cpTitle')}</h2>
+    <label>${t('cpNewLabel')}</label>
+    <input id="cp-password" type="password" placeholder="min. 6 znaków">
+    <label>${t('cpConfirmLabel')}</label>
+    <input id="cp-password-confirm" type="password">
+    <button class="btn btn-primary" onclick="submitChangePassword()">${t('cpSaveBtn')}</button>
+    <div id="cp-error" style="color:var(--amber-dark); font-size:13px; margin-top:12px; text-align:center;"></div>
+  `;
+  document.getElementById('overlay').classList.add('show');
+}
+
+async function submitChangePassword(){
+  const pw = document.getElementById('cp-password').value;
+  const pw2 = document.getElementById('cp-password-confirm').value;
+  const errEl = document.getElementById('cp-error');
+  errEl.textContent = '';
+  if(!pw || pw.length < 6){ errEl.textContent = t('cpTooShort'); return; }
+  if(pw !== pw2){ errEl.textContent = t('cpMismatch'); return; }
+  const { error } = await sb.auth.updateUser({ password: pw });
+  if(error){ errEl.textContent = t('cpFailed') + ' ' + error.message; return; }
+  const sheet = document.getElementById('sheet');
+  sheet.innerHTML = `
+    <div class="sheet-handle"></div>
+    <div class="close-x" onclick="closeOverlay()">✕</div>
+    <h2>${t('cpDoneTitle')}</h2>
+    <p class="desc">${t('cpDoneBody')}</p>
+    <button class="btn btn-secondary" onclick="closeOverlay()">${t('closeBtn')}</button>
+  `;
+}
+
+// ---------------- WERYFIKACJA TELEFONU (SMS) ----------------
+
+let phoneVerifyE164 = null;
+
+function toE164Poland(raw){
+  let digits = (raw || '').replace(/[^\d+]/g, '');
+  if(digits.startsWith('+')) return digits;
+  if(digits.startsWith('48')) return '+' + digits;
+  return '+48' + digits;
+}
+
+async function openPhoneVerification(){
+  const sheet = document.getElementById('sheet');
+  if(myProfile && myProfile.phone_verified){
+    sheet.innerHTML = `
+      <div class="sheet-handle"></div>
+      <div class="close-x" onclick="closeOverlay()">✕</div>
+      <h2>${t('phoneVerifyTitle')}</h2>
+      <p class="desc">${t('phoneAlreadyVerified')}</p>
+      <button class="btn btn-secondary" onclick="closeOverlay()">${t('closeBtn')}</button>
+    `;
+    document.getElementById('overlay').classList.add('show');
+    return;
+  }
+  const { data: priv } = await sb.from('profile_private').select('phone_number').eq('id', session.user.id).single();
+  const prefill = priv ? priv.phone_number : '';
+  sheet.innerHTML = `
+    <div class="sheet-handle"></div>
+    <div class="close-x" onclick="closeOverlay()">✕</div>
+    <h2>${t('phoneVerifyTitle')}</h2>
+    <p class="desc">${t('phoneVerifyIntro')}</p>
+    <label>${t('phoneNumberLabel')}</label>
+    <input id="pv-phone" type="tel" value="${escapeHtml(prefill)}" placeholder="600 123 456">
+    <button class="btn btn-primary" onclick="sendPhoneOtp()">${t('sendCodeBtn')}</button>
+    <div id="pv-error" style="color:var(--amber-dark); font-size:13px; margin-top:12px; text-align:center;"></div>
+  `;
+  document.getElementById('overlay').classList.add('show');
+}
+
+async function sendPhoneOtp(){
+  const rawPhone = document.getElementById('pv-phone').value;
+  const errEl = document.getElementById('pv-error');
+  errEl.textContent = '';
+  phoneVerifyE164 = toE164Poland(rawPhone);
+  const { error } = await sb.auth.updateUser({ phone: phoneVerifyE164 });
+  if(error){ errEl.textContent = t('phoneVerifyFailed') + ' ' + error.message; return; }
+  const sheet = document.getElementById('sheet');
+  sheet.innerHTML = `
+    <div class="sheet-handle"></div>
+    <div class="close-x" onclick="closeOverlay()">✕</div>
+    <h2>${t('phoneVerifyTitle')}</h2>
+    <p class="desc">${t('phoneOtpSentMsg')}</p>
+    <label>${t('codeLabel')}</label>
+    <input id="pv-code" type="text" inputmode="numeric" placeholder="123456" maxlength="6">
+    <button class="btn btn-primary" onclick="confirmPhoneOtp()">${t('confirmCodeBtn')}</button>
+    <button class="btn btn-secondary" onclick="sendPhoneOtp2Again()">${t('resendCodeBtn')}</button>
+    <div id="pv-error" style="color:var(--amber-dark); font-size:13px; margin-top:12px; text-align:center;"></div>
+  `;
+}
+
+async function sendPhoneOtp2Again(){
+  const errEl = document.getElementById('pv-error');
+  const { error } = await sb.auth.updateUser({ phone: phoneVerifyE164 });
+  if(error){ errEl.textContent = t('phoneVerifyFailed') + ' ' + error.message; return; }
+  errEl.style.color = 'var(--forest-dark)';
+  errEl.textContent = t('phoneOtpSentMsg');
+}
+
+async function confirmPhoneOtp(){
+  const code = document.getElementById('pv-code').value.trim();
+  const errEl = document.getElementById('pv-error');
+  errEl.textContent = '';
+  const { error: verifyErr } = await sb.auth.verifyOtp({ phone: phoneVerifyE164, token: code, type: 'phone_change' });
+  if(verifyErr){ errEl.textContent = t('phoneCodeFailed') + ' ' + verifyErr.message; return; }
+  const { error: markErr } = await sb.rpc('mark_phone_verified');
+  if(markErr){ errEl.textContent = t('phoneCodeFailed') + ' ' + markErr.message; return; }
+  if(myProfile) myProfile.phone_verified = true;
+  updatePhoneVerifyStatus();
+  const sheet = document.getElementById('sheet');
+  sheet.innerHTML = `
+    <div class="sheet-handle"></div>
+    <div class="close-x" onclick="closeOverlay()">✕</div>
+    <h2>${t('phoneVerifySuccessTitle')}</h2>
+    <p class="desc">${t('phoneVerifySuccessBody')}</p>
+    <button class="btn btn-secondary" onclick="closeOverlay()">${t('closeBtn')}</button>
+  `;
+}
+
+async function handleSignUp(){
+  const email = document.getElementById('auth-email').value.trim();
+  const password = document.getElementById('auth-password').value;
+  const name = document.getElementById('auth-name').value.trim();
+  const age = document.getElementById('auth-age').value.trim();
+  const nip = document.getElementById('auth-nip').value.trim();
+  const phone = document.getElementById('auth-phone').value.trim();
+  if(!email || !password || !name || !phone){
+    showAuthError('Uzupełnij wszystkie pola.');
+    return;
+  }
+  if(accountType === 'individual' && !age){
+    showAuthError('Podaj wiek.');
+    return;
+  }
+  if(!document.getElementById('auth-terms').checked){
+    showAuthError('Musisz zaakceptować Regulamin i Politykę Prywatności, aby założyć konto.');
+    return;
+  }
+  const { data, error } = await sb.auth.signUp({ email, password });
+  if(error){ showAuthError('Błąd rejestracji: ' + error.message); return; }
+  if(!data.session){
+    showAuthError('Konto utworzone. Jeśli włączone jest potwierdzanie e-mail, sprawdź skrzynkę, a potem się zaloguj.');
+    return;
+  }
+  const profileData = { id: data.user.id, display_name: name, account_type: accountType };
+  if(accountType === 'individual'){
+    profileData.age = Number(age);
+  } else if(nip){
+    profileData.company_nip = nip;
+  }
+  const { error: profErr } = await sb.from('profiles').insert(profileData);
+  if(profErr){ showAuthError('Błąd zapisu profilu: ' + profErr.message); return; }
+  const { error: privErr } = await sb.from('profile_private').insert({
+    id: data.user.id, phone_number: phone
+  });
+  if(privErr){ showAuthError('Błąd zapisu numeru telefonu: ' + privErr.message); return; }
+  await initApp();
+}
+
+async function handleSignIn(){
+  const email = document.getElementById('auth-email').value.trim();
+  const password = document.getElementById('auth-password').value;
+  if(!email || !password){ showAuthError('Podaj e-mail i hasło.'); return; }
+  const { error } = await sb.auth.signInWithPassword({ email, password });
+  if(error){ showAuthError('Błąd logowania: ' + error.message); return; }
+  await initApp();
+}
+
+async function handleSignOut(){
+  await sb.auth.signOut();
+  location.reload();
+}
+
+function finishOnboarding(){
+  localStorage.setItem('wspolniego_seen_onboarding', '1');
+  const ob = document.getElementById('onboarding');
+  if(ob) ob.classList.add('hide');
+}
+
+async function initApp(){
+  const { data: { session: s } } = await sb.auth.getSession();
+  session = s;
+  if(!session){
+    const seenOnboarding = localStorage.getItem('wspolniego_seen_onboarding') === '1';
+    const ob = document.getElementById('onboarding');
+    if(ob) ob.classList.toggle('hide', seenOnboarding);
+    document.getElementById('auth-screen').style.display = 'block';
+    document.querySelectorAll('.app-ui').forEach(el => el.style.display = 'none');
+    return;
+  }
+  const { data: prof } = await sb.from('profiles').select('*').eq('id', session.user.id).single();
+  myProfile = prof;
+  if(myProfile && myProfile.blocked){
+    await sb.auth.signOut();
+    session = null;
+    document.getElementById('auth-screen').style.display = 'block';
+    document.querySelectorAll('.app-ui').forEach(el => el.style.display = 'none');
+    showAuthError(t('blockedAccountMsg'));
+    return;
+  }
+  const obDone = document.getElementById('onboarding');
+  if(obDone) obDone.classList.add('hide');
+  document.getElementById('auth-screen').style.display = 'none';
+  document.querySelectorAll('.app-ui').forEach(el => el.style.display = '');
+  document.getElementById('profile-avatar').textContent = initials(myProfile.display_name);
+  document.getElementById('profile-name').textContent = myProfile.age ? `${myProfile.display_name}, ${myProfile.age} lat` : `${myProfile.display_name}${myProfile.account_type === 'business' ? ' · Firma' : ''}`;
+  document.getElementById('admin-panel-section').style.display = myProfile.is_admin ? 'block' : 'none';
+  updatePhoneVerifyStatus();
+  await loadOffers();
+}
+
+function updatePhoneVerifyStatus(){
+  const el = document.getElementById('phone-verify-status');
+  if(!el || !myProfile) return;
+  el.textContent = myProfile.phone_verified ? t('phoneVerifiedBadge') : t('phoneUnverifiedBadge');
+  el.style.color = myProfile.phone_verified ? 'var(--forest-dark)' : 'var(--amber-dark)';
+}
+
+// ---------------- NAWIGACJA ----------------
+
+function showTab(id, btn){
+  document.querySelectorAll('section').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  if(id === 'tab-profile') renderProfile();
+}
+
+function setFilter(type, el){
+  currentFilter = type;
+  document.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));
+  el.classList.add('on');
+  renderFeed();
+}
+
+// ---------------- OFERTY ----------------
+
+async function loadOffers(){
+  // Publiczny feed: tylko oferty aktywne z terminem, który jeszcze nie minął.
+  // Uwaga: oferty po terminie NIE są usuwane ani zamykane — po prostu nie
+  // wchodzą do tej listy. Gospodarz nadal je widzi w swoim profilu
+  // (patrz loadMyOffers), dopóki sam ich nie usunie.
+  const { data, error } = await sb
+    .from('offers')
+    .select('*, profiles(display_name, age, phone_verified)')
+    .eq('status', 'active')
+    .gte('date_time', new Date().toISOString())
+    .order('date_time', { ascending: true });
+  if(error){ console.error(error); return; }
+  offers = data;
+  renderFeed();
+}
+
+function renderFeed(){
+  const feed = document.getElementById('feed');
+  const q = (document.getElementById('search-input')?.value || '').trim().toLowerCase();
+  let visible = currentFilter === 'all' ? offers : offers.filter(o => o.activity_type === currentFilter);
+  if(q){
+    visible = visible.filter(o => {
+      const hay = `${o.title || ''} ${o.location_text || ''} ${o.profiles?.display_name || ''}`.toLowerCase();
+      return hay.includes(q);
+    });
+  }
+  if(visible.length === 0){
+    feed.innerHTML = `<div class="empty"><div class="big">${t('emptyBig')}</div>${t('emptySub')}</div>`;
+    return;
+  }
+  const locale = currentLang === 'pl' ? 'pl-PL' : 'en-GB';
+  feed.innerHTML = visible.map((o) => {
+    const icon = ICONS[o.activity_type] || "📌";
+    const dt = new Date(o.date_time);
+    const dateStr = dt.toLocaleDateString(locale, {weekday:'short', day:'2-digit', month:'2-digit'});
+    const timeStr = dt.toLocaleTimeString(locale, {hour:'2-digit', minute:'2-digit'});
+    const hostName = o.profiles ? o.profiles.display_name : 'Użytkownik';
+    const hostAge = o.profiles ? o.profiles.age : null;
+    const ageLabel = hostAge ? `, ${hostAge} ${t('yearsLbl')}` : '';
+    const verifiedTag = o.profiles?.phone_verified ? ` <span style="color:var(--forest-dark);" title="${t('phoneVerifiedBadge')}">${t('verifiedTag')}</span>` : '';
+    return `
+    <div class="card" onclick="openDetail('${o.id}')">
+      <div class="card-top">
+        <div style="display:flex; gap:12px;">
+          <div class="card-icon">${icon}</div>
+          <div>
+            <p class="card-title">${escapeHtml(o.title)}</p>
+            <div class="card-meta">${escapeHtml(o.location_text || (currentLang==='pl' ? 'Miejsce do ustalenia' : 'Location TBD'))}</div>
+          </div>
+        </div>
+        <div class="card-when">${timeStr}</div>
+      </div>
+      ${o.participants_note ? `<div class="card-tags"><span class="tag">${escapeHtml(o.participants_note)}</span></div>` : ''}
+      <div class="card-host">
+        <div class="avatar">${initials(hostName)}</div>
+        ${escapeHtml(hostName)}${verifiedTag}${ageLabel} &nbsp;·&nbsp; ${dateStr}
+      </div>
+    </div>
+  `; }).join('');
+}
+
+function openDetail(id){
+  const o = offers.find(x => x.id === id);
+  if(!o) return;
+  const icon = ICONS[o.activity_type] || "📌";
+  const dt = new Date(o.date_time);
+  const isMine = o.host_id === session.user.id;
+  const hostName = o.profiles ? o.profiles.display_name : 'Użytkownik';
+  const hostAge = o.profiles ? o.profiles.age : null;
+  const ageLabel = hostAge ? `, ${hostAge} ${t('yearsLbl')}` : '';
+  const verifiedTag = o.profiles?.phone_verified ? ` <span style="color:var(--forest-dark);" title="${t('phoneVerifiedBadge')}">${t('verifiedTag')}</span>` : '';
+  const locale = currentLang === 'pl' ? 'pl-PL' : 'en-GB';
+  const sheet = document.getElementById('sheet');
+  sheet.innerHTML = `
+    <div class="sheet-handle"></div>
+    <div class="close-x" onclick="closeOverlay()">✕</div>
+    <h2>${icon} ${escapeHtml(o.title)}</h2>
+    <div class="info-row">🗓️ <b>${dt.toLocaleDateString(locale)} · ${dt.toLocaleTimeString(locale,{hour:'2-digit',minute:'2-digit'})}</b></div>
+    <div class="info-row">📍 <b>${escapeHtml(o.location_text || (currentLang==='pl'?'Do ustalenia':'TBD'))}</b></div>
+    <div class="info-row">👤 <b>${escapeHtml(hostName)}${verifiedTag}${ageLabel}</b></div>
+    ${o.participants_note ? `<div class="info-row">🙋 ${escapeHtml(o.participants_note)}</div>` : ''}
+    <p class="desc">${escapeHtml(o.description || t('noDescText'))}</p>
+    <div id="contact-area">
+      ${isMine
+        ? `<button class="btn btn-secondary" onclick="closeOverlay()">${t('myOfferBtn')}</button>`
+        : `<button class="btn btn-primary" onclick="requestContact('${o.id}')">${t('joinBtn')}</button>
+           <button class="btn btn-secondary" onclick="closeOverlay()">${t('backBtn')}</button>
+           <button class="btn-danger" style="display:block; width:100%; text-align:center; margin-top:14px; padding:8px;" onclick="openReportForm('${o.host_id}','${o.id}')">${t('reportBtn')}</button>`}
+    </div>
+  `;
+  document.getElementById('overlay').classList.add('show');
+}
+
+async function requestContact(offerId){
+  const area = document.getElementById('contact-area');
+  area.innerHTML = `<div class="reveal-box">${t('sendingRequest')}</div>`;
+  const { error } = await sb.rpc('create_join_request', { p_offer_id: offerId });
+  if(error){
+    area.innerHTML = `<div class="reveal-box">${t('requestFailed')} ${escapeHtml(error.message)}</div>
+      <button class="btn btn-secondary" onclick="closeOverlay()" style="margin-top:14px;">${t('closeBtn')}</button>`;
+    return;
+  }
+  area.innerHTML = `
+    <div class="reveal-box">
+      ${t('requestSentTitle')}<br>
+      ${t('requestSentBody')}
+    </div>
+    <button class="btn btn-secondary" onclick="closeOverlay()" style="margin-top:14px;">${t('closeBtn')}</button>
+  `;
+}
+
+function closeOverlay(){
+  document.getElementById('overlay').classList.remove('show');
+}
+
+function openReportForm(reportedUserId, reportedOfferId){
+  const sheet = document.getElementById('sheet');
+  sheet.innerHTML = `
+    <div class="sheet-handle"></div>
+    <div class="close-x" onclick="closeOverlay()">✕</div>
+    <h2>${t('reportModalTitle')}</h2>
+    <label>${t('reportReasonLabel')}</label>
+    <select id="report-reason">
+      <option value="behavior">${t('reportReason1')}</option>
+      <option value="fake_account">${t('reportReason2')}</option>
+      <option value="scam_safety">${t('reportReason3')}</option>
+      <option value="spam">${t('reportReason4')}</option>
+      <option value="other">${t('reportReason5')}</option>
+    </select>
+    <label>${t('reportDescLabel')}</label>
+    <textarea id="report-desc"></textarea>
+    <button class="btn btn-primary" onclick="submitReport('${reportedUserId}', ${reportedOfferId ? `'${reportedOfferId}'` : 'null'})">${t('reportSubmitBtn')}</button>
+    <button class="btn btn-secondary" onclick="closeOverlay()">${t('backBtn')}</button>
+    <div id="report-error" style="color:var(--amber-dark); font-size:13px; margin-top:12px; text-align:center;"></div>
+  `;
+  document.getElementById('overlay').classList.add('show');
+}
+
+async function submitReport(reportedUserId, reportedOfferId){
+  const reason = document.getElementById('report-reason').value;
+  const description = document.getElementById('report-desc').value.trim();
+  const errEl = document.getElementById('report-error');
+  const { error } = await sb.from('reports').insert({
+    reporter_id: session.user.id,
+    reported_user_id: reportedUserId,
+    reported_offer_id: reportedOfferId,
+    reason: reason,
+    description: description || null
+  });
+  if(error){ errEl.textContent = t('reportFailed') + ' ' + error.message; return; }
+  const sheet = document.getElementById('sheet');
+  sheet.innerHTML = `
+    <div class="sheet-handle"></div>
+    <div class="close-x" onclick="closeOverlay()">✕</div>
+    <h2>${t('reportSentTitle')}</h2>
+    <p class="desc">${t('reportSentBody')}</p>
+    <button class="btn btn-secondary" onclick="closeOverlay()">${t('closeBtn')}</button>
+  `;
+}
+
+async function addOffer(){
+  const activityType = document.getElementById('f-type').value;
+  const title = document.getElementById('f-title').value.trim();
+  const date = document.getElementById('f-date').value;
+  const time = document.getElementById('f-time').value;
+  const loc = document.getElementById('f-loc').value.trim();
+  const need = document.getElementById('f-need').value.trim();
+  const desc = document.getElementById('f-desc').value.trim();
+
+  if(!title || !date || !time){
+    alert(currentLang==='pl' ? 'Uzupełnij przynajmniej rodzaj aktywności, tytuł, datę i godzinę.' : 'Please fill in at least the activity type, title, date and time.');
+    return;
+  }
+  const dateTimeIso = new Date(`${date}T${time}`).toISOString();
+
+  const { error } = await sb.from('offers').insert({
+    host_id: session.user.id,
+    activity_type: activityType,
+    title: title,
+    location_text: loc || null,
+    date_time: dateTimeIso,
+    participants_note: need || null,
+    description: desc || null
+  });
+  if(error){ alert((currentLang==='pl'?'Nie udało się dodać oferty: ':'Couldn\'t add the listing: ') + error.message); return; }
+
+  ['f-title','f-loc','f-need','f-desc','f-date','f-time'].forEach(id=>document.getElementById(id).value='');
+  await loadOffers();
+  showTab('tab-search', document.querySelector('nav button[data-tab="tab-search"]'));
+}
+
+async function deleteOffer(id){
+  if(!confirm(t('confirmDelete'))) return;
+  const { error } = await sb.from('offers').delete().eq('id', id);
+  if(error){ alert(t('deleteFailed') + ' ' + error.message); return; }
+  await loadOffers();
+  renderProfile();
+}
+
+// ---------------- PROFIL: własne oferty + zgłoszenia ----------------
+
+async function loadMyOffers(){
+  // Profil Gospodarza: WSZYSTKIE jego oferty, niezależnie od terminu.
+  // Celowo bez filtra .gte('date_time', ...) i bez filtra statusu poza
+  // 'active' — dopóki Gospodarz sam nie usunie oferty (deleteOffer),
+  // ma ją widzieć tutaj, nawet jeśli już zniknęła z publicznego feedu.
+  const { data, error } = await sb
+    .from('offers')
+    .select('*')
+    .eq('host_id', session.user.id)
+    .order('date_time', { ascending: false });
+  if(error){ console.error(error); return []; }
+  return data;
+}
+
+async function renderProfile(){
+  const mineContainer = document.getElementById('my-offers');
+  const mine = await loadMyOffers();
+  const now = new Date();
+  mineContainer.innerHTML = mine.length === 0
+    ? `<div class="list-item" style="color:var(--ink-soft);">${t('noOffers')}</div>`
+    : mine.map(o => {
+      const expired = new Date(o.date_time) < now;
+      const stateLabel = expired ? t('expiredLbl') : t('activeLbl');
+      const stateColor = expired ? 'var(--ink-soft)' : 'var(--amber-dark)';
+      return `
+      <div class="list-item">
+        <span>${ICONS[o.activity_type] || "📌"} ${escapeHtml(o.title)}</span>
+        <span>
+          <span style="color:${stateColor}; font-weight:700; margin-right:10px;">${stateLabel}</span>
+          <button onclick="deleteOffer('${o.id}')" class="btn-danger">${t('deleteBtn')}</button>
+        </span>
+      </div>
+    `; }).join('');
+
+  const myOfferIds = mine.map(o => o.id).length ? mine.map(o => o.id) : ['00000000-0000-0000-0000-000000000000'];
+
+  // Zgłoszenia OTRZYMANE, oczekujące (jestem hostem)
+  const { data: received } = await sb
+    .from('join_requests')
+    .select('id, status, offer_id, offers(title), profiles(display_name, age)')
+    .eq('status', 'pending')
+    .in('offer_id', myOfferIds);
+
+  const receivedContainer = document.getElementById('received-requests');
+  receivedContainer.innerHTML = (!received || received.length === 0)
+    ? `<div class="list-item" style="color:var(--ink-soft);">${t('noPending')}</div>`
+    : received.map(r => `
+      <div class="list-item">
+        <span>${escapeHtml(r.profiles?.display_name || '?')}, ${r.profiles?.age || '–'} ${t('yearsLbl')} → ${escapeHtml(r.offers?.title || '')}</span>
+        <span>
+          <button onclick="respondToRequest('${r.id}', true)" style="background:none; border:none; color:var(--forest-dark); font-weight:700; cursor:pointer; font-size:13px; margin-right:8px;">${t('acceptBtn')}</button>
+          <button onclick="respondToRequest('${r.id}', false)" style="background:none; border:none; color:var(--ink-soft); font-weight:700; cursor:pointer; font-size:13px;">${t('declineBtn')}</button>
+        </span>
+      </div>
+    `).join('');
+
+  // Uczestnicy, którzy dołączyli do MOICH wydarzeń (zaakceptowani) — z możliwością usunięcia
+  const { data: accepted } = await sb
+    .from('join_requests')
+    .select('id, offer_id, requester_id, offers(title), profiles(display_name, age)')
+    .eq('status', 'accepted')
+    .in('offer_id', myOfferIds);
+
+  const acceptedContainer = document.getElementById('accepted-participants');
+  acceptedContainer.innerHTML = (!accepted || accepted.length === 0)
+    ? `<div class="list-item" style="color:var(--ink-soft);">${t('noAccepted')}</div>`
+    : accepted.map(r => `
+      <div class="participant-row">
+        <span><span class="avatar" style="display:inline-flex; margin-right:8px; vertical-align:middle;">${initials(r.profiles?.display_name)}</span>${escapeHtml(r.profiles?.display_name || '?')}, ${r.profiles?.age || '–'} ${t('yearsLbl')} → ${escapeHtml(r.offers?.title || '')}</span>
+        <span>
+          <button onclick="openReportForm('${r.requester_id}','${r.offer_id}')" class="btn-danger" style="margin-right:8px;">${t('reportBtn')}</button>
+          <button onclick="removeParticipant('${r.id}')" class="btn-danger">${t('removeBtn')}</button>
+        </span>
+      </div>
+    `).join('');
+
+  // Zgłoszenia WYSŁANE (jestem uczestnikiem)
+  const { data: sent } = await sb
+    .from('join_requests')
+    .select('id, status, offer_id, offers(title, host_id)')
+    .eq('requester_id', session.user.id);
+
+  const sentContainer = document.getElementById('sent-requests');
+  if(!sent || sent.length === 0){
+    sentContainer.innerHTML = `<div class="list-item" style="color:var(--ink-soft);">${t('noSent')}</div>`;
+  } else {
+    const statusLabels = { pending:t('statusPending'), accepted:t('statusAccepted'), declined:t('statusDeclined'), cancelled:t('statusCancelled') };
+    const rows = await Promise.all(sent.map(async (r) => {
+      const statusLabel = statusLabels[r.status] || r.status;
+      let phoneHtml = '';
+      if(r.status === 'accepted' && r.offers?.host_id){
+        const { data: priv } = await sb.from('profile_private').select('phone_number').eq('id', r.offers.host_id).single();
+        if(priv){
+          const telHref = "tel:+48" + priv.phone_number.replace(/\s/g,'');
+          phoneHtml = `
+            <div style="font-family:'JetBrains Mono',monospace; font-weight:700; color:var(--forest-dark); margin-top:4px;">${escapeHtml(priv.phone_number)}</div>
+            <a class="btn btn-call" style="margin-top:8px; padding:10px;" href="${telHref}">${t('callBtn')}</a>
+            <div style="font-size:12px; color:var(--ink-soft); margin-top:8px; line-height:1.4;">${t('safetyReminderShort')}</div>`;
+        }
+      }
+      return `
+        <div class="list-item" style="flex-direction:column; align-items:flex-start;">
+          <div style="display:flex; justify-content:space-between; width:100%;">
+            <span>${escapeHtml(r.offers?.title || '')}</span>
+            <span style="color:var(--ink-soft); font-weight:700;">${statusLabel}</span>
+          </div>
+          ${phoneHtml}
+        </div>
+      `;
+    }));
+    sentContainer.innerHTML = rows.join('');
+  }
+
+  if(myProfile && myProfile.is_admin){
+    await loadAdminReports();
+  }
+}
+
+async function respondToRequest(requestId, accept){
+  const fn = accept ? 'accept_join_request' : 'decline_join_request';
+  const { error } = await sb.rpc(fn, { request_id: requestId });
+  if(error){ alert((currentLang==='pl'?'Błąd: ':'Error: ') + error.message); return; }
+  await renderProfile();
+}
+
+async function removeParticipant(requestId){
+  if(!confirm(t('confirmRemove'))) return;
+  const { error } = await sb.rpc('remove_join_request', { request_id: requestId });
+  if(error){ alert(t('removeFailed') + ' ' + error.message); return; }
+  await renderProfile();
+}
+
+// ---------------- PANEL MODERACJI (tylko admin) ----------------
+
+const REPORT_REASON_KEYS = {
+  behavior:'reportReason1', fake_account:'reportReason2',
+  scam_safety:'reportReason3', spam:'reportReason4', other:'reportReason5'
+};
+
+async function loadAdminReports(){
+  const container = document.getElementById('admin-reports');
+  const { data, error } = await sb
+    .from('reports')
+    .select(`
+      id, reason, description, status, created_at, reported_offer_id,
+      reporter:profiles!reports_reporter_id_fkey(display_name),
+      reported:profiles!reports_reported_user_id_fkey(id, display_name, blocked),
+      offers(title)
+    `)
+    .eq('status', 'pending')
+    .order('created_at', { ascending: false });
+
+  if(error){
+    container.innerHTML = `<div class="list-item" style="color:var(--ink-soft);">${t('adminActionFailed')} ${escapeHtml(error.message)}</div>`;
+    return;
+  }
+  renderAdminReports(data || []);
+}
+
+function renderAdminReports(reports){
+  const container = document.getElementById('admin-reports');
+  if(reports.length === 0){
+    container.innerHTML = `<div class="list-item" style="color:var(--ink-soft);">${t('adminNoReports')}</div>`;
+    return;
+  }
+  container.innerHTML = reports.map(r => `
+    <div class="list-item" style="flex-direction:column; align-items:flex-start;">
+      <div style="font-weight:700; margin-bottom:4px;">${t(REPORT_REASON_KEYS[r.reason] || 'reportReason5')}</div>
+      <div style="font-size:13px; color:var(--ink-soft);">${t('adminReportedLbl')}: ${escapeHtml(r.reported?.display_name || '?')}${r.reported?.blocked ? ' ' + t('adminBlockedSuffix') : ''}</div>
+      <div style="font-size:13px; color:var(--ink-soft);">${t('adminReporterLbl')}: ${escapeHtml(r.reporter?.display_name || '?')}</div>
+      ${r.offers?.title ? `<div style="font-size:13px; color:var(--ink-soft);">${t('adminRelatedOfferLbl')}: ${escapeHtml(r.offers.title)}</div>` : ''}
+      ${r.description ? `<div style="font-size:13.5px; margin-top:6px;">${escapeHtml(r.description)}</div>` : ''}
+      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; width:100%;">
+        ${!r.reported?.blocked ? `<button onclick="adminBlockUser('${r.reported?.id}','${r.id}')" class="btn-danger">${t('adminBlockBtn')}</button>` : ''}
+        <button onclick="adminSetReportStatus('${r.id}','resolved')" style="background:none; border:none; color:var(--forest-dark); font-weight:700; cursor:pointer; font-size:13px;">${t('adminResolveBtn')}</button>
+        <button onclick="adminSetReportStatus('${r.id}','dismissed')" style="background:none; border:none; color:var(--ink-soft); font-weight:700; cursor:pointer; font-size:13px;">${t('adminDismissBtn')}</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function adminBlockUser(userId, reportId){
+  if(!confirm(t('adminConfirmBlock'))) return;
+  const { error } = await sb.rpc('admin_set_blocked', { target_user_id: userId, new_blocked: true });
+  if(error){ alert(t('adminBlockFailed') + ' ' + error.message); return; }
+  if(reportId){ await sb.from('reports').update({ status: 'resolved' }).eq('id', reportId); }
+  await loadAdminReports();
+}
+
+async function adminSetReportStatus(reportId, status){
+  const { error } = await sb.from('reports').update({ status }).eq('id', reportId);
+  if(error){ alert(t('adminActionFailed') + ' ' + error.message); return; }
+  await loadAdminReports();
+}
+
+// ---------------- START ----------------
+
+document.addEventListener('DOMContentLoaded', () => {
+  setLang('pl');
+  initApp();
+});
+
+
+// ---- PWA: rejestracja Service Workera ----
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(err => {
+      console.warn('Service worker nie został zarejestrowany:', err);
+    });
+  });
+}
+
+// ---- PWA: własny baner instalacji (zamiast domyślnego promptu Chrome) ----
+let deferredInstallPrompt = null;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  const banner = document.getElementById('install-banner');
+  if (banner) banner.style.display = 'flex';
+});
+
+function isIosSafariNotInstalled(){
+  const ua = window.navigator.userAgent;
+  const isIos = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
+  const isStandalone = window.navigator.standalone === true
+    || window.matchMedia('(display-mode: standalone)').matches;
+  return isIos && !isStandalone;
+}
+
+function handleInstallClick(){
+  const banner = document.getElementById('install-banner');
+  if(isIosSafariNotInstalled()){
+    // Na iOS nie ma programowego okna instalacji — pokazujemy naszą instrukcję.
+    if (banner) banner.style.display = 'none';
+    showTab('tab-profile', document.querySelector('nav button[data-tab="tab-profile"]'));
+    const acc = document.getElementById('acc-ios');
+    if(acc){
+      acc.style.display = 'block';
+      const chevron = document.getElementById('acc-ios-chevron');
+      if(chevron) chevron.classList.add('open');
+      acc.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    return;
+  }
+  installApp();
+}
+
+function installApp(){
+  const banner = document.getElementById('install-banner');
+  if (banner) banner.style.display = 'none';
+  if (deferredInstallPrompt) {
+    deferredInstallPrompt.prompt();
+    deferredInstallPrompt = null;
+  }
+}
+
+function dismissInstallBanner(){
+  const banner = document.getElementById('install-banner');
+  if (banner) banner.style.display = 'none';
+}
+
+window.addEventListener('appinstalled', () => {
+  const banner = document.getElementById('install-banner');
+  if (banner) banner.style.display = 'none';
+});
+
+// iOS Safari nigdy nie wywoła "beforeinstallprompt" — pokazujemy baner sami,
+// z innym tekstem i przyciskiem prowadzącym do instrukcji zamiast promptu.
+if (isIosSafariNotInstalled()) {
+  const banner = document.getElementById('install-banner');
+  const title = document.getElementById('ib-title');
+  const subtitle = document.getElementById('ib-subtitle');
+  const btn = document.getElementById('ib-install-btn');
+  if (banner && title && subtitle && btn) {
+    title.textContent = t('iosInstallBannerTitle');
+    subtitle.textContent = t('iosInstallBannerText');
+    btn.textContent = t('iosInstallBannerBtn');
+    banner.style.display = 'flex';
+  }
+}
+</script>
+
 </body>
 </html>
