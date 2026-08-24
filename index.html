@@ -482,8 +482,16 @@
     <div id="auth-register-fields">
       <label>Twoje imię</label>
       <input id="auth-name" type="text" placeholder="np. Tadeusz">
+      <label>Rodzaj konta</label>
+      <div class="filters" style="margin-bottom:2px;">
+        <div class="chip on" id="acc-type-individual" onclick="setAccountType('individual')">Klient indywidualny</div>
+        <div class="chip" id="acc-type-business" onclick="setAccountType('business')">Firma</div>
+      </div>
       <div class="row2">
-        <div><label>Wiek</label><input id="auth-age" type="number" placeholder="60"></div>
+        <div>
+          <div id="age-field-wrap"><label>Wiek</label><input id="auth-age" type="number" placeholder="60"></div>
+          <div id="nip-field-wrap" style="display:none;"><label>NIP firmy (opcjonalnie)</label><input id="auth-nip" type="text" placeholder="np. 1234567890"></div>
+        </div>
         <div><label>Telefon</label><input id="auth-phone" type="tel" placeholder="600 123 456"></div>
       </div>
       <div class="form-note">🔒 Numer telefonu nigdy nie jest publiczny — pokażemy go dopiero po wzajemnej akceptacji zgłoszenia.</div>
@@ -738,6 +746,7 @@ let myProfile = null;
 let offers = [];
 let currentFilter = 'all';
 let authMode = 'register';
+let accountType = 'individual';
 
 // ---------------- JĘZYK (PL/EN) ----------------
 
@@ -1071,6 +1080,7 @@ function toggleAuthMode(){
     submitBtn.textContent = 'Załóż konto';
     submitBtn.onclick = handleSignUp;
     toggleBtn.textContent = 'Mam już konto — zaloguj się';
+    setAccountType('individual');
   } else {
     submitBtn.textContent = 'Zaloguj się';
     submitBtn.onclick = handleSignIn;
@@ -1081,6 +1091,15 @@ function toggleAuthMode(){
 
 function showAuthError(msg){
   document.getElementById('auth-error').textContent = msg;
+}
+
+function setAccountType(type){
+  accountType = type;
+  document.getElementById('acc-type-individual').classList.toggle('on', type === 'individual');
+  document.getElementById('acc-type-business').classList.toggle('on', type === 'business');
+  document.getElementById('age-field-wrap').style.display = type === 'individual' ? 'block' : 'none';
+  document.getElementById('nip-field-wrap').style.display = type === 'business' ? 'block' : 'none';
+  showAuthError('');
 }
 
 async function handleForgotPassword(){
@@ -1234,9 +1253,14 @@ async function handleSignUp(){
   const password = document.getElementById('auth-password').value;
   const name = document.getElementById('auth-name').value.trim();
   const age = document.getElementById('auth-age').value.trim();
+  const nip = document.getElementById('auth-nip').value.trim();
   const phone = document.getElementById('auth-phone').value.trim();
-  if(!email || !password || !name || !age || !phone){
+  if(!email || !password || !name || !phone){
     showAuthError('Uzupełnij wszystkie pola.');
+    return;
+  }
+  if(accountType === 'individual' && !age){
+    showAuthError('Podaj wiek.');
     return;
   }
   if(!document.getElementById('auth-terms').checked){
@@ -1249,9 +1273,13 @@ async function handleSignUp(){
     showAuthError('Konto utworzone. Jeśli włączone jest potwierdzanie e-mail, sprawdź skrzynkę, a potem się zaloguj.');
     return;
   }
-  const { error: profErr } = await sb.from('profiles').insert({
-    id: data.user.id, display_name: name, age: Number(age)
-  });
+  const profileData = { id: data.user.id, display_name: name, account_type: accountType };
+  if(accountType === 'individual'){
+    profileData.age = Number(age);
+  } else if(nip){
+    profileData.company_nip = nip;
+  }
+  const { error: profErr } = await sb.from('profiles').insert(profileData);
   if(profErr){ showAuthError('Błąd zapisu profilu: ' + profErr.message); return; }
   const { error: privErr } = await sb.from('profile_private').insert({
     id: data.user.id, phone_number: phone
@@ -1306,7 +1334,7 @@ async function initApp(){
   document.getElementById('auth-screen').style.display = 'none';
   document.querySelectorAll('.app-ui').forEach(el => el.style.display = '');
   document.getElementById('profile-avatar').textContent = initials(myProfile.display_name);
-  document.getElementById('profile-name').textContent = `${myProfile.display_name}, ${myProfile.age} lat`;
+  document.getElementById('profile-name').textContent = myProfile.age ? `${myProfile.display_name}, ${myProfile.age} lat` : `${myProfile.display_name}${myProfile.account_type === 'business' ? ' · Firma' : ''}`;
   document.getElementById('admin-panel-section').style.display = myProfile.is_admin ? 'block' : 'none';
   updatePhoneVerifyStatus();
   await loadOffers();
@@ -1375,7 +1403,8 @@ function renderFeed(){
     const dateStr = dt.toLocaleDateString(locale, {weekday:'short', day:'2-digit', month:'2-digit'});
     const timeStr = dt.toLocaleTimeString(locale, {hour:'2-digit', minute:'2-digit'});
     const hostName = o.profiles ? o.profiles.display_name : 'Użytkownik';
-    const hostAge = o.profiles ? o.profiles.age : '–';
+    const hostAge = o.profiles ? o.profiles.age : null;
+    const ageLabel = hostAge ? `, ${hostAge} ${t('yearsLbl')}` : '';
     const verifiedTag = o.profiles?.phone_verified ? ` <span style="color:var(--forest-dark);" title="${t('phoneVerifiedBadge')}">${t('verifiedTag')}</span>` : '';
     return `
     <div class="card" onclick="openDetail('${o.id}')">
@@ -1392,7 +1421,7 @@ function renderFeed(){
       ${o.participants_note ? `<div class="card-tags"><span class="tag">${escapeHtml(o.participants_note)}</span></div>` : ''}
       <div class="card-host">
         <div class="avatar">${initials(hostName)}</div>
-        ${escapeHtml(hostName)}${verifiedTag}, ${hostAge} ${t('yearsLbl')} &nbsp;·&nbsp; ${dateStr}
+        ${escapeHtml(hostName)}${verifiedTag}${ageLabel} &nbsp;·&nbsp; ${dateStr}
       </div>
     </div>
   `; }).join('');
@@ -1405,7 +1434,8 @@ function openDetail(id){
   const dt = new Date(o.date_time);
   const isMine = o.host_id === session.user.id;
   const hostName = o.profiles ? o.profiles.display_name : 'Użytkownik';
-  const hostAge = o.profiles ? o.profiles.age : '–';
+  const hostAge = o.profiles ? o.profiles.age : null;
+  const ageLabel = hostAge ? `, ${hostAge} ${t('yearsLbl')}` : '';
   const verifiedTag = o.profiles?.phone_verified ? ` <span style="color:var(--forest-dark);" title="${t('phoneVerifiedBadge')}">${t('verifiedTag')}</span>` : '';
   const locale = currentLang === 'pl' ? 'pl-PL' : 'en-GB';
   const sheet = document.getElementById('sheet');
@@ -1415,7 +1445,7 @@ function openDetail(id){
     <h2>${icon} ${escapeHtml(o.title)}</h2>
     <div class="info-row">🗓️ <b>${dt.toLocaleDateString(locale)} · ${dt.toLocaleTimeString(locale,{hour:'2-digit',minute:'2-digit'})}</b></div>
     <div class="info-row">📍 <b>${escapeHtml(o.location_text || (currentLang==='pl'?'Do ustalenia':'TBD'))}</b></div>
-    <div class="info-row">👤 <b>${escapeHtml(hostName)}${verifiedTag}, ${hostAge} ${t('yearsLbl')}</b></div>
+    <div class="info-row">👤 <b>${escapeHtml(hostName)}${verifiedTag}${ageLabel}</b></div>
     ${o.participants_note ? `<div class="info-row">🙋 ${escapeHtml(o.participants_note)}</div>` : ''}
     <p class="desc">${escapeHtml(o.description || t('noDescText'))}</p>
     <div id="contact-area">
